@@ -17,13 +17,16 @@
   start() : start processing
   stop() : stop processing
 
+  The user has to add methods depending on the target, like a callback.
+  This callback should access to the depending hardware buffer(s), reorganized if needed and copy samples in the mIn/OutBuffers
+  Then, it has to call mEngine->process() to start signal processing.
+  @endverbatim
+
+
+
   getBuffer(): return in out, and FramePerBuffer interleaved stereo buffer depending on the channels given.
   this method should be used in Engine::process, to be able to give to the AudioComponent::process the right stereo buffer.
 
-  The user has to add methods depending on the target, like a callback.
-  This callback should access to the buffer(s), and reorganize if needed.
-  Then, it has to call mEngine->process() to start signal processing.
-  @endverbatim
   ******************************************************************************
   * @attention
   *
@@ -37,8 +40,8 @@
 
 #include "const.hpp"
 
-#define AUDIOCONF_MAX_OUTPUT_CHANNELS 16
-#define AUDIOCONF_MAX_INPUT_CHANNELS 16
+#define AUDIOCONF_MAX_OUTPUT_CHANNELS 4
+#define AUDIOCONF_MAX_INPUT_CHANNELS 4
 
 
 class Engine;
@@ -74,9 +77,8 @@ class AbstractAudioDriver{
 		virtual UInt8_t start() = 0;
 		virtual UInt8_t stop() = 0;
 
-        virtual void getBuffer(UInt8_t inStCh, Sample **inBuffer, UInt8_t outStCh, Sample**outBuffer, UInt32_t *bufferSize) = 0;
-
-
+        // Maybe this one will be pure virtual, I still don't know...
+        virtual void getBuffer(UInt8_t inStCh, Sample **inBuffer, UInt8_t outStCh, Sample**outBuffer, UInt32_t *bufferSize);
 
 
         inline AudioDriverState getState() const { return mState; }
@@ -105,6 +107,9 @@ class AbstractAudioDriver{
 		AudioDriverState mState;
 
         Engine *mEngine;
+
+        Sample *mInBuffers[AUDIOCONF_MAX_INPUT_CHANNELS];
+        Sample *mOutBuffers[AUDIOCONF_MAX_OUTPUT_CHANNELS];
 };
 
 

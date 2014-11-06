@@ -17,7 +17,7 @@ AbstractAudioDriver::AbstractAudioDriver(SampleRate sr, FramePerBuffer fpb) :
 }
 
 
-void AbstractAudioDriver::getBuffer(UInt8_t inStCh, Sample **inBuffer, UInt8_t outStCh, Sample**outBuffer, UInt32_t *bufferSize){
+void AbstractAudioDriver::getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_t outStCh, Sample**outBuffer, uint32_t *bufferSize){
     if(inStCh >= 0 && inStCh < AUDIOCONF_MAX_INPUT_CHANNELS)
     {
         *inBuffer = mInBuffers[inStCh];
@@ -33,7 +33,7 @@ void AbstractAudioDriver::getBuffer(UInt8_t inStCh, Sample **inBuffer, UInt8_t o
 
 
 
-void AbstractAudioDriver::setNumStereoIn(UInt16_t numStereoIn){
+void AbstractAudioDriver::setNumStereoIn(uint16_t numStereoIn){
     if(mState == Running) return;
 
     if(numStereoIn >= 0 && numStereoIn < AUDIOCONF_MAX_INPUT_CHANNELS)
@@ -42,7 +42,7 @@ void AbstractAudioDriver::setNumStereoIn(UInt16_t numStereoIn){
     }
 }
 
-void AbstractAudioDriver::setNumStereoOut(UInt16_t numStereoOut){
+void AbstractAudioDriver::setNumStereoOut(uint16_t numStereoOut){
     if(mState == Running) return;
 
     if(numStereoOut >= 0 && numStereoOut < AUDIOCONF_MAX_OUTPUT_CHANNELS)

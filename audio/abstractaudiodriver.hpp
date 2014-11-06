@@ -71,14 +71,14 @@ class AbstractAudioDriver{
 		AbstractAudioDriver(SampleRate sr, FramePerBuffer fpb);
         virtual ~AbstractAudioDriver() {}
 
-        //virtual UInt8_t configure() = 0;
-		virtual UInt8_t terminate() = 0;
+        //virtual uint8_t configure() = 0;
+        virtual uint8_t terminate() = 0;
 
-		virtual UInt8_t start() = 0;
-		virtual UInt8_t stop() = 0;
+        virtual uint8_t start() = 0;
+        virtual uint8_t stop() = 0;
 
         // Maybe this one will be pure virtual, I still don't know...
-        virtual void getBuffer(UInt8_t inStCh, Sample **inBuffer, UInt8_t outStCh, Sample**outBuffer, UInt32_t *bufferSize);
+        virtual void getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_t outStCh, Sample**outBuffer, uint32_t *bufferSize);
 
 
         inline AudioDriverState getState() const { return mState; }
@@ -86,11 +86,11 @@ class AbstractAudioDriver{
         inline FramePerBuffer getFramesPerBuffer() const {	return mFramesPerBuffer;}
         inline SampleRate getSampleRate() const { return mSampleRate;}
 
-        inline UInt16_t getNumStereoIn() const { return mNumStereoIn;}
-        inline UInt16_t getNumStereoOut() const {   return mNumStereoOut;}
+        inline uint16_t getNumStereoIn() const { return mNumStereoIn;}
+        inline uint16_t getNumStereoOut() const {   return mNumStereoOut;}
 
-        void setNumStereoIn(UInt16_t numStereoIn);
-        void setNumStereoOut(UInt16_t numStereoOut);
+        void setNumStereoIn(uint16_t numStereoIn);
+        void setNumStereoOut(uint16_t numStereoOut);
 
 
         void setEngine(Engine *eng);
@@ -101,8 +101,8 @@ class AbstractAudioDriver{
 		SampleRate mSampleRate;
 		FramePerBuffer mFramesPerBuffer;
 
-        UInt16_t mNumStereoIn;
-        UInt16_t mNumStereoOut;
+        uint16_t mNumStereoIn;
+        uint16_t mNumStereoOut;
 
 		AudioDriverState mState;
 

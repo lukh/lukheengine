@@ -13,7 +13,7 @@
 Engine::Engine(AbstractAudioDriver *driver) :
     mDriver(driver)
 {
-    UInt8_t i;
+    uint8_t i;
 
     for(i = 0; i < ENGINE_MAXAUDIOCOMPONENTS; i ++)
         mAudioComponents[i] = (AudioComponent *)NULLPTR;
@@ -23,10 +23,10 @@ Engine::Engine(AbstractAudioDriver *driver) :
 
 
 void Engine::process(){
-    UInt8_t i;
+    uint8_t i;
 
     Sample *in, *out;
-    UInt32_t bufferSize;
+    uint32_t bufferSize;
 
     for(i = 0; i < ENGINE_MAXAUDIOCOMPONENTS; i ++){
         if(mAudioComponents[i] != (AudioComponent *)NULLPTR){

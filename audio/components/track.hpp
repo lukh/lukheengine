@@ -19,10 +19,10 @@
 
 class Track : AudioComponent{
 	public:
-        Track(UInt8_t inStCh, UInt8_t outStCh);
+        Track(uint8_t inStCh, uint8_t outStCh);
 		~Track();
 
-        virtual void process(void *in, void *out, UInt32_t framesPerBuffer);
+        virtual void process(void *in, void *out, uint32_t framesPerBuffer);
 		virtual void update();
 
 	private:

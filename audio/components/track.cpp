@@ -7,7 +7,7 @@
 
 #include "track.hpp"
 
-Track::Track(UInt8_t inStCh, UInt8_t outStCh) :
+Track::Track(uint8_t inStCh, uint8_t outStCh) :
     AudioComponent(inStCh, outStCh)
 {
 
@@ -17,7 +17,7 @@ Track::~Track(){
 
 }
 
-void Track::process(void *in, void *out, UInt32_t framesPerBuffer){
+void Track::process(void *in, void *out, uint32_t framesPerBuffer){
     (void *)in;
     (void *)out;
     framesPerBuffer;

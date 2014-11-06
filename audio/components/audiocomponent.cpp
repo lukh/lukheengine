@@ -7,7 +7,7 @@
 
 #include "audiocomponent.hpp"
 
-AudioComponent::AudioComponent(UInt8_t inStCh, UInt8_t outStCh) :
+AudioComponent::AudioComponent(uint8_t inStCh, uint8_t outStCh) :
     mInStereoCh(inStCh), mOutStereoCh(outStCh)
 {
 }

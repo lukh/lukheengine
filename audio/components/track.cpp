@@ -12,7 +12,7 @@ Track::Track(uint8_t inStCh, uint8_t outStCh) :
 {
     uint8_t i;
 
-    for(i = 0; i < ENGINE_MAXAUDIOCOMPONENTS; i ++)
+    for(i = 0; i < TRACK_MAXAUDIOCOMPONENTS; i ++)
         mAudioComponents[i] = (AudioComponent *)NULLPTR;
 }
 

@@ -46,4 +46,8 @@ typedef unsigned long long uint64_t;
 
 
 
+#define LE_OK 0
+#define LE_ERROR 1
+
+
 #endif /* CONST_HPP_ */

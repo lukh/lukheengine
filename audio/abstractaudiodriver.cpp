@@ -17,18 +17,16 @@ AbstractAudioDriver::AbstractAudioDriver(SampleRate sr, FramePerBuffer fpb) :
 }
 
 
-void AbstractAudioDriver::getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_t outStCh, Sample**outBuffer, uint32_t *bufferSize){
-    if(inStCh >= 0 && inStCh < AUDIOCONF_MAX_INPUT_CHANNELS)
-    {
-        *inBuffer = mInBuffers[inStCh];
-    }
+uint8_t AbstractAudioDriver::getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_t outStCh, Sample**outBuffer, uint32_t *bufferSize){
+    if(inStCh >= AUDIOCONF_MAX_INPUT_CHANNELS || outStCh >= AUDIOCONF_MAX_OUTPUT_CHANNELS)
+        return LE_ERROR;
 
-    if(outStCh >= 0 && outStCh < AUDIOCONF_MAX_OUTPUT_CHANNELS)
-    {
-        *outBuffer = mOutBuffers[outStCh];
-    }
+    *inBuffer = mInBuffers[inStCh];
+    *outBuffer = mOutBuffers[outStCh];
 
     *bufferSize = mFramesPerBuffer;
+
+    return LE_OK;
 }
 
 

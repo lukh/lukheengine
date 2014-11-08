@@ -10,10 +10,12 @@
 
 #include "audiocomponent.hpp"
 
-/*enum TrackBroadcastType{
+#define TRACK_MAXAUDIOCOMPONENTS 16
+
+enum TrackBroadcastType{
 	Mono,
 	Stereo
-};*/
+};
 
 
 
@@ -26,7 +28,7 @@ class Track : AudioComponent{
 		virtual void update();
 
 	private:
-
+        AudioComponent *mAudioComponents[TRACK_MAXAUDIOCOMPONENTS];
 
 };
 

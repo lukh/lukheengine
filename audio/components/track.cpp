@@ -21,8 +21,13 @@ Track::~Track(){
 
 void Track::process(void *in, void *out, uint32_t framesPerBuffer){
     uint8_t i;
-    for(i = 0; i < TRACK_MAXAUDIOCOMPONENTS; i ++){
-        mAudioComponents[i]->process(in, out, framesPerBuffer);
+
+    if(mAudioComponents[0] != NULLPTR)
+         mAudioComponents[0]->process(in, out, framesPerBuffer);
+
+    for(i = 1; i < TRACK_MAXAUDIOCOMPONENTS; i ++){
+        if(mAudioComponents[i] != NULLPTR)
+            mAudioComponents[i]->process(out, out, framesPerBuffer);
     }
 }
 

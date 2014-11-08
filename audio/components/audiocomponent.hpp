@@ -46,5 +46,4 @@ class AudioComponent{
 };
 
 
-
 #endif /* AUDIOCOMPONENT_HPP_ */

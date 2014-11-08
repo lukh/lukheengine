@@ -24,8 +24,8 @@
 
 
 
-  getBuffer(): return in out, and FramePerBuffer interleaved stereo buffer depending on the channels given.
-  this method should be used in Engine::process, to be able to give to the AudioComponent::process the right stereo buffer.
+  getBuffer(): return in out, and FramePerBuffer interleaved buffer depending on the channels given.
+  this method should be used in Engine::process, to be able to give to the AudioComponent::process the right buffer.
 
   ******************************************************************************
   * @attention
@@ -40,8 +40,8 @@
 
 #include "const.hpp"
 
-#define AUDIOCONF_MAX_OUTPUT_CHANNELS 4
-#define AUDIOCONF_MAX_INPUT_CHANNELS 4
+#define AUDIOCONF_MAX_OUTPUT_BUFFERS 4
+#define AUDIOCONF_MAX_INPUT_BUFFERS 4
 
 
 class Engine;
@@ -78,7 +78,15 @@ class AbstractAudioDriver{
         virtual uint8_t stop() = 0;
 
         // Maybe this one will be pure virtual, I still don't know...
-        virtual uint8_t getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_t outStCh, Sample**outBuffer, uint32_t *bufferSize);
+        virtual uint8_t getBuffer(uint8_t inBufferId,
+                                  Sample **inBuffer,
+                                  uint8_t *inNumChannels,
+
+                                  uint8_t outBufferId,
+                                  Sample **outBuffer,
+                                  uint8_t *outNumChannels,
+
+                                  uint32_t *bufferSize);
 
 
         inline AudioDriverState getState() const { return mState; }
@@ -86,11 +94,11 @@ class AbstractAudioDriver{
         inline FramePerBuffer getFramesPerBuffer() const {	return mFramesPerBuffer;}
         inline SampleRate getSampleRate() const { return mSampleRate;}
 
-        inline uint16_t getNumStereoIn() const { return mNumStereoIn;}
-        inline uint16_t getNumStereoOut() const {   return mNumStereoOut;}
+        inline uint16_t getNumInBuffers() const { return mNumInBuffers;}
+        inline uint16_t getNumOutBuffers() const {   return mNumOutBuffers;}
 
-        void setNumStereoIn(uint16_t numStereoIn);
-        void setNumStereoOut(uint16_t numStereoOut);
+        void setNumInBuffers(uint16_t numInBuffers);
+        void setNumOutBuffers(uint16_t numOutBuffers);
 
 
         void setEngine(Engine *eng);
@@ -101,15 +109,17 @@ class AbstractAudioDriver{
 		SampleRate mSampleRate;
 		FramePerBuffer mFramesPerBuffer;
 
-        uint16_t mNumStereoIn;
-        uint16_t mNumStereoOut;
+        uint16_t mNumInBuffers;
+        uint16_t mNumOutBuffers;
 
 		AudioDriverState mState;
 
         Engine *mEngine;
 
-        Sample *mInBuffers[AUDIOCONF_MAX_INPUT_CHANNELS];
-        Sample *mOutBuffers[AUDIOCONF_MAX_OUTPUT_CHANNELS];
+        Sample *mInBuffers[AUDIOCONF_MAX_INPUT_BUFFERS];
+        uint8_t mInNumBufferChannels[AUDIOCONF_MAX_INPUT_BUFFERS];
+        Sample *mOutBuffers[AUDIOCONF_MAX_OUTPUT_BUFFERS];
+        uint8_t mOutNumBufferChannels[AUDIOCONF_MAX_OUTPUT_BUFFERS];
 };
 
 

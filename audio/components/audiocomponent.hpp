@@ -30,18 +30,22 @@
 
 class AudioComponent{
 	public:
-        AudioComponent(uint8_t inStCh, uint8_t outStCh);
+        AudioComponent(uint8_t inBuffId, uint8_t outBuffId);
+        //AudioComponent(AudioComponent &ac);
         virtual ~AudioComponent() {}
 
-        virtual void process(void *in, void *out, uint32_t framesPerBuffer) = 0;
+        virtual void process(void *in, uint8_t inNumCh, void *out, uint8_t outNumCh, uint32_t framesPerBuffer) = 0;
 		virtual void update() = 0;
 
-        inline uint8_t getInStereoCh() const { return mInStereoCh; }
-        inline uint8_t getOutStereoCh() const { return mOutStereoCh; }
+        inline uint8_t getInBufferId() const { return mInBufferId; }
+        inline uint8_t getOutBufferId() const { return mOutBufferId; }
 
     private:
-        uint8_t mInStereoCh;
-        uint8_t mOutStereoCh;
+        uint8_t mInBufferId;
+        uint8_t mInFrameChannels[4];
+
+        uint8_t mOutBufferId;
+        uint8_t mOutFrameChannels[4];
 };
 
 

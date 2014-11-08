@@ -21,10 +21,10 @@ enum TrackBroadcastType{
 
 class Track : AudioComponent{
 	public:
-        Track(uint8_t inStCh, uint8_t outStCh);
+        Track(uint8_t inBufferId, uint8_t outBufferId);
 		~Track();
 
-        virtual void process(void *in, void *out, uint32_t framesPerBuffer);
+        virtual void process(void *in, uint8_t inNumCh, void *out, uint8_t outNumCh, uint32_t framesPerBuffer);
 		virtual void update();
 
 	private:

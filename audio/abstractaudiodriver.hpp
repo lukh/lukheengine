@@ -80,8 +80,9 @@ class AbstractAudioDriver{
         // Maybe this one will be pure virtual, I still don't know...
         virtual uint8_t getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_t outStCh, Sample**outBuffer, uint32_t *bufferSize);
 
-
         inline AudioDriverState getState() const { return mState; }
+
+        void setEngine(Engine *eng);
 
         inline FramePerBuffer getFramesPerBuffer() const {	return mFramesPerBuffer;}
         inline SampleRate getSampleRate() const { return mSampleRate;}
@@ -89,11 +90,9 @@ class AbstractAudioDriver{
         inline uint16_t getNumStereoIn() const { return mNumStereoIn;}
         inline uint16_t getNumStereoOut() const {   return mNumStereoOut;}
 
+    protected:
         void setNumStereoIn(uint16_t numStereoIn);
         void setNumStereoOut(uint16_t numStereoOut);
-
-
-        void setEngine(Engine *eng);
 
 
 

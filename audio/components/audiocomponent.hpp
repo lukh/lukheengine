@@ -40,6 +40,7 @@ class AudioComponent{
         inline uint8_t getOutStereoCh() const { return mOutStereoCh; }
 
     private:
+        //will be ignored if the AudioComponent is include in another (ex : track)
         uint8_t mInStereoCh;
         uint8_t mOutStereoCh;
 };

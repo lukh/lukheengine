@@ -11,7 +11,6 @@ Track::Track(uint8_t inStCh, uint8_t outStCh) :
     AudioComponent(inStCh, outStCh)
 {
     uint8_t i;
-
     for(i = 0; i < TRACK_MAXAUDIOCOMPONENTS; i ++)
         mAudioComponents[i] = (AudioComponent *)NULLPTR;
 }
@@ -21,9 +20,10 @@ Track::~Track(){
 }
 
 void Track::process(void *in, void *out, uint32_t framesPerBuffer){
-    (void *)in;
-    (void *)out;
-    framesPerBuffer;
+    uint8_t i;
+    for(i = 0; i < TRACK_MAXAUDIOCOMPONENTS; i ++){
+        mAudioComponents[i]->process(in, out, framesPerBuffer);
+    }
 }
 
 void Track::update(){

@@ -44,7 +44,7 @@
 #define AUDIOCONF_MAX_INPUT_CHANNELS 4
 
 
-class Engine;
+#include "engine.hpp"
 
 
 
@@ -54,11 +54,6 @@ enum SampleRate{
     SR192000 = 192000
 };
 
-enum FramePerBuffer{
-	FPB256 = 256,
-	FPB512 = 512,
-	FPB1024 = 1024
-};
 
 enum AudioDriverState{
 	NonInitialized,
@@ -68,10 +63,10 @@ enum AudioDriverState{
 
 class AbstractAudioDriver{
 	public:
-		AbstractAudioDriver(SampleRate sr, FramePerBuffer fpb);
+        AbstractAudioDriver(SampleRate sr, uint32_t fpb);
         virtual ~AbstractAudioDriver() {}
 
-        //virtual uint8_t configure() = 0;
+        virtual uint8_t configure() = 0;
         virtual uint8_t terminate() = 0;
 
         virtual uint8_t start() = 0;
@@ -84,7 +79,7 @@ class AbstractAudioDriver{
 
         void setEngine(Engine *eng);
 
-        inline FramePerBuffer getFramesPerBuffer() const {	return mFramesPerBuffer;}
+        inline uint32_t getFramesPerBuffer() const {	return mFramesPerBuffer;}
         inline SampleRate getSampleRate() const { return mSampleRate;}
 
         inline uint16_t getNumStereoIn() const { return mNumStereoIn;}
@@ -96,9 +91,9 @@ class AbstractAudioDriver{
 
 
 
-	private:
+    protected:
 		SampleRate mSampleRate;
-		FramePerBuffer mFramesPerBuffer;
+        uint32_t mFramesPerBuffer;
 
         uint16_t mNumStereoIn;
         uint16_t mNumStereoOut;

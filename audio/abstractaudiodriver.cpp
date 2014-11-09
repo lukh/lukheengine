@@ -6,9 +6,8 @@
  */
 
 #include "abstractaudiodriver.hpp"
-#include "engine.hpp"
 
-AbstractAudioDriver::AbstractAudioDriver(SampleRate sr, FramePerBuffer fpb) :
+AbstractAudioDriver::AbstractAudioDriver(SampleRate sr, uint32_t fpb) :
 	mSampleRate(sr), mFramesPerBuffer(fpb),
     mNumStereoIn(0), mNumStereoOut(0),
     mState(NonInitialized),

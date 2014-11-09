@@ -28,7 +28,7 @@
 #define ENGINE_HPP_
 
 #include "const.hpp"
-#include "components/audiocomponent.hpp"
+#include "audiocomponent.hpp"
 
 class AbstractAudioDriver;
 

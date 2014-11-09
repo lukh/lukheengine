@@ -2,8 +2,22 @@
 
 
 RtAudioDriver::RtAudioDriver() :
-    AbstractAudioDriver(sampleRate, framesPerBuffer)
+    AbstractAudioDriver(sampleRate, framesPerBuffer),
+    rt(), inParams(), outParams()
 {
+    // Determine the number of devices available
+   unsigned int devices = rt.getDeviceCount();
+   // Scan through devices for various capabilities
+   RtAudio::DeviceInfo info;
+   for ( unsigned int i=0; i<devices; i++ ) {
+       info = rt.getDeviceInfo( i );
+       if ( info.probed == true ) {
+           // Print, for example, the maximum number of output channels for each device
+           std::cout << "device = " << i << "\n";
+           std::cout << ": maximum output channels = " << info.outputChannels << "\n";
+           std::cout << ": maximum input  channels = " << info.inputChannels << "\n";
+       }
+   }
 
     if(rt.getDeviceCount() > 0){
          // Set the same number of channels for both input and output.
@@ -30,7 +44,7 @@ int RtAudioDriver::callback( void *outputBuffer, void *inputBuffer, unsigned int
     status;
 
     //Convert Engine..
-    Engine *engine = (Engine *)data;
+    //Engine *engine = (Engine *)data;
 
 
 
@@ -38,8 +52,11 @@ int RtAudioDriver::callback( void *outputBuffer, void *inputBuffer, unsigned int
     //...
     //...
 
+    //For the moment, just trying to put the in out...
+
+
     //Call the Engine::process
-    engine->process();
+    //engine->process();
 
 
     return 0;

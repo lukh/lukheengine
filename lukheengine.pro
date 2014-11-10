@@ -4,19 +4,19 @@
 #
 #-------------------------------------------------
 
-QT       -= core gui
+QT       += core gui widgets
 
 TARGET = lukheengine
-TEMPLATE = lib
+TEMPLATE = app
 
 # ---- TARGET DEPENDENT ---
 DEFINES += __RT_AUDIO__
 win32 {
 DEFINES += __NO_JACK__
  message(win32)
-CONFIG += x86 console
+CONFIG += x86_64 console
 QMAKE_CXXFLAGS += -D__WINDOWS_ASIO__ #-D__UNIX_JACK__ #RtAudio Flags
-LIBS += -lWs2_32 -lOle32 #needed by rtaudio/asio
+LIBS += -lWs2_32 -lOle32 -lAdvapi32 #needed by rtaudio/asio
 DEFINES += __WIN_32__
 DEFINES -= UNICODE #RtAudio for Qt
 }
@@ -26,22 +26,36 @@ INCLUDEPATH += D:/libs/rtaudio-4.1.1/ \
 
 
 win32 {
-HEADERS += D:/libs/rtaudio-4.1.1/RtAudio.h \
-D:/libs/rtaudio-4.1.1/include/asio.h \
-D:/libs/rtaudio-4.1.1/include/asiodrivers.h \
-D:/libs/rtaudio-4.1.1/include/asiolist.h \
-D:/libs/rtaudio-4.1.1/include/asiodrvr.h \
-D:/libs/rtaudio-4.1.1/include/asiosys.h \
-D:/libs/rtaudio-4.1.1/include/ginclude.h \
-D:/libs/rtaudio-4.1.1/include/iasiodrv.h \
-D:/libs/rtaudio-4.1.1/include/iasiothiscallresolver.h
+HEADERS += D:/libs/rtaudio-4.1.1/RtAudio.h
+#D:/libs/rtaudio-4.1.1/include/asio.h \
+#D:/libs/rtaudio-4.1.1/include/asiodrivers.h \
+#D:/libs/rtaudio-4.1.1/include/asiolist.h \
+#D:/libs/rtaudio-4.1.1/include/asiodrvr.h \
+#D:/libs/rtaudio-4.1.1/include/asiosys.h \
+#D:/libs/rtaudio-4.1.1/include/ginclude.h \
+#D:/libs/rtaudio-4.1.1/include/iasiodrv.h \
+#D:/libs/rtaudio-4.1.1/include/iasiothiscallresolver.h
 
-LIBS += -L"D:/libs/rtaudio-4.1.1/lib" -lrtaudio_static
+#SOURCES += D:/libs/rtaudio-4.1.1/include/asio.cpp \
+#D:/libs/rtaudio-4.1.1/include/asiodrivers.cpp \
+#D:/libs/rtaudio-4.1.1/include/asiolist.cpp \
+#D:/libs/rtaudio-4.1.1/include/iasiothiscallresolver.cpp
+
+LIBS += -L"D:/libs/rtaudio-4.1.1/lib" -lrtaudio_asio_static
 }
 
 
+#--- SANDBOX DEPENDENT ---
+INCLUDEPATH += __sandbox__
+SOURCES += __sandbox__/main.cpp \
+        __sandbox__/mainwindow.cpp
 
-#--- LUKHE ENFINE SOURCES --
+HEADERS  += __sandbox__/mainwindow.h
+
+FORMS    += __sandbox__/mainwindow.ui
+
+
+#--- LUKHE ENGINE SOURCES --
 INCLUDEPATH += . \
     audio/ \
     audio/components/ \

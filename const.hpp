@@ -23,7 +23,7 @@
 
 #define NULLPTR ((void*)0)
 
-typedef double Sample;
+typedef signed int Sample;
 
 #if __cplusplus >= 201103L
 #include <cstdint> //Si le compilo supporte C++ 2011 et les

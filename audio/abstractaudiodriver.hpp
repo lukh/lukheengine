@@ -73,7 +73,7 @@ class AbstractAudioDriver{
         virtual uint8_t stop() = 0;
 
         // Maybe this one will be pure virtual, I still don't know...
-        virtual uint8_t getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_t outStCh, Sample**outBuffer, uint32_t *bufferSize);
+        virtual uint8_t getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_t outStCh, Sample**outBuffer, uint32_t *nBufferFrames);
 
         inline AudioDriverState getState() const { return mState; }
 

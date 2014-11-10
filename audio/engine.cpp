@@ -21,19 +21,23 @@ Engine::Engine(AbstractAudioDriver *driver) :
     mDriver->setEngine(this);
 }
 
+Engine::~Engine(){
+
+}
+
 
 void Engine::process(){
     uint8_t i;
 
     Sample *in, *out;
-    uint32_t bufferSize;
+    uint32_t nBufferFrames;
 
     for(i = 0; i < ENGINE_MAXAUDIOCOMPONENTS; i ++){
         if(mAudioComponents[i] != (AudioComponent *)NULLPTR){
             //get buffers (in and out, buffsize) informations from the driver
-            if(mDriver->getBuffer(mAudioComponents[i]->getInStereoCh(), &in, mAudioComponents[i]->getOutStereoCh(), &out, &bufferSize) == LE_OK){
+            if(mDriver->getBuffer(mAudioComponents[i]->getInStereoCh(), &in, mAudioComponents[i]->getOutStereoCh(), &out, &nBufferFrames) == LE_OK){
                 //start processing..
-                mAudioComponents[i]->process(in, out, bufferSize);
+                mAudioComponents[i]->process(in, out, nBufferFrames);
             }
         }
     }

@@ -74,6 +74,7 @@ class AbstractAudioDriver{
 
         // Maybe this one will be pure virtual, I still don't know...
         virtual uint8_t getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_t outStCh, Sample**outBuffer, uint32_t *nBufferFrames);
+        virtual void process() { mEngine->process(); }
 
         inline AudioDriverState getState() const { return mState; }
 
@@ -84,6 +85,12 @@ class AbstractAudioDriver{
 
         inline uint16_t getNumStereoIn() const { return mNumStereoIn;}
         inline uint16_t getNumStereoOut() const {   return mNumStereoOut;}
+
+
+        //dedicaded for the implemented callback, user should'nt used it
+        inline void setInBufferAddr(uint8_t id, Sample *buff) { mInBuffers[id] = buff; }
+        inline void setOutBufferAddr(uint8_t id, Sample *buff) { mOutBuffers[id] = buff; }
+        inline void setMFramesPerBuffer(uint32_t fpb) { mFramesPerBuffer = fpb; }
 
     protected:
         void setNumStereoIn(uint16_t numStereoIn);

@@ -41,23 +41,30 @@ int RtAudioDriver::callback( void *outputBuffer, void *inputBuffer, unsigned int
     Sample *out = (Sample *)outputBuffer;
     Sample *in = (Sample *)inputBuffer;
 
+
     //Convert Engine..
-    //Engine *engine = (Engine *)data;
+    RtAudioDriver *drv = (RtAudioDriver *)data;
 
 
-    //Convert Data from hardware and fill mXBuffers
-    //...
-    //...
+    //Convert Data from hardware and fill mInBuffers
+#ifdef RTAUDIODRIVER_IN2OUT2_ENGINEMODE
 
-    //For the moment, just trying to put the in out...
+    drv->setMFramesPerBuffer(nBufferFrames);
+    drv->setInBufferAddr(0, in);
+    drv->setOutBufferAddr(0, out);
+
+
+    //DEBUG MODE : out the input
+#else RTAUDIODRIVER_BYPASS
     uint32_t i;
     for(i = 0; i < nBufferFrames; i++){
-        *out++ = *(++in);
+        *out++ = *in++;
         *out++ = *in++;
     }
+#endif
 
-    //Call the Engine::process
-    //engine->process();
+    //Call the RTAudioDriver::process
+    drv->process();
 
 
     return 0;
@@ -69,7 +76,7 @@ uint8_t RtAudioDriver::configure(){
     std::cout << "RtAudioDriver::configure()" << "\n";
 
     try {
-    rt.openStream( &outParams, &inParams, RTAUDIO_SINT32, 44100, &realBufferFrames, RtAudioDriver::callback, (void *)mEngine );
+    rt.openStream( &outParams, &inParams, RTAUDIO_SINT32, 44100, &realBufferFrames, RtAudioDriver::callback, (void *)this );
     }
     catch ( RtAudioError& e ) {
     e.printMessage();

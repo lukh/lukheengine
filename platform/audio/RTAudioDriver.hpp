@@ -5,6 +5,9 @@
 #include "abstractaudiodriver.hpp"
 #include "RtAudio.h"
 
+//#define RTAUDIODRIVER_BYPASS
+#define RTAUDIODRIVER_IN2OUT2_ENGINEMODE
+
 const SampleRate sampleRate = SR44100;
 const uint32_t framesPerBuffer = 512;
 

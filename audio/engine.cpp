@@ -32,7 +32,16 @@ void Engine::process(){
     Sample *in, *out;
     uint32_t nBufferFrames;
 
-    for(i = 0; i < ENGINE_MAXAUDIOCOMPONENTS; i ++){
+    //testing the engine without complicated stuff...
+    if(mDriver->getBuffer(0, &in, 0, &out, &nBufferFrames) == LE_OK){
+        uint32_t j;
+        for(j = 0; j < nBufferFrames; j ++){
+            *out++ = *(++in);
+            *out++ = *in++;
+        }
+    }
+
+    /*for(i = 0; i < ENGINE_MAXAUDIOCOMPONENTS; i ++){
         if(mAudioComponents[i] != (AudioComponent *)NULLPTR){
             //get buffers (in and out, buffsize) informations from the driver
             if(mDriver->getBuffer(mAudioComponents[i]->getInStereoCh(), &in, mAudioComponents[i]->getOutStereoCh(), &out, &nBufferFrames) == LE_OK){
@@ -40,7 +49,7 @@ void Engine::process(){
                 mAudioComponents[i]->process(in, out, nBufferFrames);
             }
         }
-    }
+    }*/
 }
 
 

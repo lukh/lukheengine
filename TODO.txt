@@ -1,0 +1,11 @@
+// --- TODO List LuKHe Engine ---
+
+// #Audio Engine:
+//   * Debug and stress the engine.
+//   * Add useful method, to check and improve components workflow
+//
+// #Audio Driver:
+//   * Start development of STM32AudioDriver:
+//   * Low Level Abstractions
+//   * Low Level Implementations
+//   * Mid Level Driver

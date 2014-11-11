@@ -19,8 +19,14 @@ Track::~Track(){
 
 }
 
-void Track::process(void *in, void *out, uint32_t framesPerBuffer){
-    uint8_t i;
+void Track::process(Sample *in, Sample *out, uint32_t framesPerBuffer){
+    uint32_t i;
+    for(i = 0; i < framesPerBuffer; i ++){
+        *out++ = *(++in);
+        *out++ = *in++;
+    }
+
+    /*uint8_t i;
 
     if(mAudioComponents[0] != NULLPTR)
          mAudioComponents[0]->process(in, out, framesPerBuffer);
@@ -28,11 +34,19 @@ void Track::process(void *in, void *out, uint32_t framesPerBuffer){
     for(i = 1; i < TRACK_MAXAUDIOCOMPONENTS; i ++){
         if(mAudioComponents[i] != NULLPTR)
             mAudioComponents[i]->process(out, out, framesPerBuffer);
-    }
+    }*/
 }
 
 void Track::update(){
 
 }
 
+
+uint8_t Track::setComponent(uint8_t id, AudioComponent *component){
+    if(id > TRACK_MAXAUDIOCOMPONENTS) return LE_ERROR;
+
+    mAudioComponents[id] = component;
+
+    return LE_OK;
+}
 

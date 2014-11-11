@@ -19,13 +19,15 @@ enum TrackBroadcastType{
 
 
 
-class Track : AudioComponent{
+class Track : public AudioComponent{
 	public:
         Track(uint8_t inStCh, uint8_t outStCh);
 		~Track();
 
-        virtual void process(void *in, void *out, uint32_t framesPerBuffer);
+        virtual void process(Sample *in, Sample *out, uint32_t framesPerBuffer);
 		virtual void update();
+
+        uint8_t setComponent(uint8_t id, AudioComponent *component);
 
 	private:
         AudioComponent *mAudioComponents[TRACK_MAXAUDIOCOMPONENTS];

@@ -45,6 +45,8 @@ class Engine{
         void process();
         void update();
 
+        uint8_t setComponent(uint8_t id, AudioComponent *component);
+
 	private:
         /*
          * Relative to Engine

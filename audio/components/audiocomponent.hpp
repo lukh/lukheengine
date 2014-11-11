@@ -33,7 +33,7 @@ class AudioComponent{
         AudioComponent(uint8_t inStCh, uint8_t outStCh);
         virtual ~AudioComponent() {}
 
-        virtual void process(void *in, void *out, uint32_t framesPerBuffer) = 0;
+        virtual void process(Sample *in, Sample *out, uint32_t framesPerBuffer) = 0;
 		virtual void update() = 0;
 
         inline uint8_t getInStereoCh() const { return mInStereoCh; }

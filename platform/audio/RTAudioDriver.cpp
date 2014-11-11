@@ -6,7 +6,11 @@ RtAudioDriver::RtAudioDriver() :
     rt(), inParams(), outParams()
 {
     // Determine the number of devices available
+#ifdef __WINDOWS_ASIO__
    unsigned int devices = 1;//rt.getDeviceCount();
+#else
+    unsigned int devices = rt.getDeviceCount();
+#endif
    // Scan through devices for various capabilities
    RtAudio::DeviceInfo info;
    for ( unsigned int i=0; i<devices; i++ ) {
@@ -21,11 +25,19 @@ RtAudioDriver::RtAudioDriver() :
    }
 
     if(rt.getDeviceCount() > 0){
-         // Set the same number of channels for both input and output.
-        inParams.deviceId = 0; // first available device
+
+#ifdef __WINDOWS_ASIO__
+        // Set the same number of channels for both input and output.
+       inParams.deviceId = 0; // first available device
+       inParams.nChannels = 2;
+       outParams.deviceId = 0; // first available device
+       outParams.nChannels = 2;
+#else         // Set the same number of channels for both input and output.
+        inParams.deviceId = 1; // first available device
         inParams.nChannels = 2;
         outParams.deviceId = 0; // first available device
         outParams.nChannels = 2;
+#endif
     }
 
 

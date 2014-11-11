@@ -8,17 +8,22 @@ QT       += core gui widgets
 
 TARGET = lukheengine
 TEMPLATE = app
+CONFIG += x86_64 console noasio
 
 # ---- TARGET DEPENDENT ---
 DEFINES += __RT_AUDIO__
 win32 {
 DEFINES += __NO_JACK__
  message(win32)
-CONFIG += x86_64 console
+asio{
+DEFINE += __WINDOWS_ASIO__
 QMAKE_CXXFLAGS += -D__WINDOWS_ASIO__ #-D__UNIX_JACK__ #RtAudio Flags
+}
 LIBS += -lWs2_32 -lOle32 -lAdvapi32 #needed by rtaudio/asio
-DEFINES += __WIN_32__
 DEFINES -= UNICODE #RtAudio for Qt
+
+DEFINES += __WIN_32__
+
 }
 
 INCLUDEPATH += D:/libs/rtaudio-4.1.1/ \
@@ -40,8 +45,12 @@ HEADERS += D:/libs/rtaudio-4.1.1/RtAudio.h
 #D:/libs/rtaudio-4.1.1/include/asiodrivers.cpp \
 #D:/libs/rtaudio-4.1.1/include/asiolist.cpp \
 #D:/libs/rtaudio-4.1.1/include/iasiothiscallresolver.cpp
-
+asio{
 LIBS += -L"D:/libs/rtaudio-4.1.1/lib" -lrtaudio_asio_static
+}
+noasio{
+LIBS += -L"D:/libs/rtaudio-4.1.1/lib" -lrtaudio_static
+}
 }
 
 
@@ -68,7 +77,8 @@ SOURCES += \
     audio/abstractaudiodriver.cpp \
     audio/engine.cpp \
     audio/components/audiocomponent.cpp \
-    platform/audio/RTAudioDriver.cpp
+    platform/audio/RTAudioDriver.cpp \
+    audio/components/randomcomponent.cpp
 
 HEADERS += \
     const.hpp \
@@ -76,7 +86,8 @@ HEADERS += \
     audio/components/track.hpp \
     audio/abstractaudiodriver.hpp \
     audio/engine.hpp \
-    platform/audio/RTAudioDriver.hpp
+    platform/audio/RTAudioDriver.hpp \
+    audio/components/randomcomponent.hpp
 
 unix {
     target.path = /usr/lib

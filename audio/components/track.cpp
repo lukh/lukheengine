@@ -20,21 +20,23 @@ Track::~Track(){
 }
 
 void Track::process(Sample *in, Sample *out, uint32_t framesPerBuffer){
-    uint32_t i;
+    //Testing Track
+    /*uint32_t i;
     for(i = 0; i < framesPerBuffer; i ++){
         *out++ = *(++in);
         *out++ = *in++;
-    }
+    }*/
 
-    /*uint8_t i;
+    uint8_t i;
 
+    //the first component handle the input, the others are Fx
     if(mAudioComponents[0] != NULLPTR)
          mAudioComponents[0]->process(in, out, framesPerBuffer);
 
     for(i = 1; i < TRACK_MAXAUDIOCOMPONENTS; i ++){
         if(mAudioComponents[i] != NULLPTR)
             mAudioComponents[i]->process(out, out, framesPerBuffer);
-    }*/
+    }
 }
 
 void Track::update(){

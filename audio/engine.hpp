@@ -1,12 +1,12 @@
 /**
   ******************************************************************************
-  * @file    engine.hpp
-  * @author  Vivien Henry
-  * @version V1.0
-  * @date    06/11/2014
-  * @brief   Engine is the core of the audio processing
+  * \file    engine.hpp
+  * \author  Vivien Henry
+  * \version V1.0
+  * \date    06/11/2014
+  * \brief   Engine is the core of the audio processing
   *
-  @verbatim
+  \verbatim
   ==============================================================================
                         ##### Engine #####
   ==============================================================================
@@ -26,9 +26,9 @@
 
   > call the AudioComponent::process of the component, with the buffers given.
 
-  @endverbatim
+  \endverbatim
   ******************************************************************************
-  * @attention
+  * \attention
   *
   ******************************************************************************
   */
@@ -45,55 +45,55 @@ class AbstractAudioDriver;
 #define ENGINE_MAXAUDIOCOMPONENTS 16
 
 /**
- * @brief The Engine class
+ * \brief The Engine class
  */
 class Engine{
 	public:
         /**
-         * @brief Engine
+         * \brief Engine
          * Create a new Engine, connected to the AbstractAudioDriver
          * This driver is necessary to route and give the right buffers from the driver to the AudioComponent
-         * @param driver it should be created
+         * \param driver it should be created
          */
         Engine(AbstractAudioDriver *driver);
 
-        /** @brief Destructor of Engine
+        /** \brief Destructor of Engine
           */
         ~Engine();
 
         /**
-         * @brief process
+         * \brief process
          * The Engine::process() is called by the AbstractAudioDriver::process
          * For each valid AudioComponent, it called the process for this component after find the right buffer
          */
         void process();
 
         /**
-         * @brief update
+         * \brief update
          * Could be used to update parameters in the whole running engine. Handle by a callback ?
          */
         void update();
 
 
         /**
-         * @brief setComponent
+         * \brief setComponent
          * Add a new component to mAudioComponents regarding to the id
          * the component MUST be created before and the id MUST be valid (0 < ENGINE_MAXAUDIOCOMPONENTS)
-         * @param id : the position in the list (0 < ENGINE_MAXAUDIOCOMPONENTS)
-         * @param component
-         * @retval LE_OK if success or LE_ERROR if not
-         * @note : if the mAudioComponents[id] is not free, the component is not added
+         * \param id : the position in the list (0 < ENGINE_MAXAUDIOCOMPONENTS)
+         * \param component
+         * \retval LE_OK if success or LE_ERROR if not
+         * \note : if the mAudioComponents[id] is not free, the component is not added
          */
         uint8_t setComponent(uint8_t id, AudioComponent *component);
 
 	private:
         /**
-         * @brief mDriver
+         * \brief mDriver
          */
         AbstractAudioDriver *mDriver;
 
         /**
-         * @brief mAudioComponents
+         * \brief mAudioComponents
          */
         AudioComponent *mAudioComponents[ENGINE_MAXAUDIOCOMPONENTS];
 };

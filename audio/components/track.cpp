@@ -45,8 +45,17 @@ void Track::update(){
 
 
 uint8_t Track::setComponent(uint8_t id, AudioComponent *component){
-    if(id > TRACK_MAXAUDIOCOMPONENTS) return LE_ERROR;
+    //inputs param are ok
+    if(id > TRACK_MAXAUDIOCOMPONENTS || component == (AudioComponent*)NULLPTR) return LE_ERROR;
 
+    //slot is free
+    if(mAudioComponents[id] != (AudioComponent *)NULLPTR) return LE_ERROR;
+
+    //set the rights stereo channels, it is useless but just to keep something logical
+    component->setInStereoCh(mInStereoCh);
+    component->setOutStereoCh(mOutStereoCh);
+
+    //add the component
     mAudioComponents[id] = component;
 
     return LE_OK;

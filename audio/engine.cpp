@@ -53,8 +53,13 @@ void Engine::process(){
 }
 
 uint8_t Engine::setComponent(uint8_t id, AudioComponent *component){
-    if(id > ENGINE_MAXAUDIOCOMPONENTS) return LE_ERROR;
+    //check the inputs param
+    if(id > ENGINE_MAXAUDIOCOMPONENTS | component == (AudioComponent*)NULLPTR) return LE_ERROR;
 
+    //check if the slot is free
+    if(mAudioComponents[id] != (AudioComponent*)NULLPTR) return LE_ERROR;
+
+    //ok cool
     mAudioComponents[id] = component;
 
     return LE_OK;

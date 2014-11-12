@@ -5,40 +5,6 @@ RtAudioDriver::RtAudioDriver() :
     AbstractAudioDriver(sampleRate, framesPerBuffer),
     rt(), inParams(), outParams()
 {
-    // Determine the number of devices available
-#ifdef __WINDOWS_ASIO__
-   unsigned int devices = 1;//rt.getDeviceCount();
-#else
-    unsigned int devices = rt.getDeviceCount();
-#endif
-   // Scan through devices for various capabilities
-   RtAudio::DeviceInfo info;
-   for ( unsigned int i=0; i<devices; i++ ) {
-       info = rt.getDeviceInfo( i );
-       if ( info.probed == true ) {
-           // Print, for example, the maximum number of output channels for each device
-           std::cout << "device = " << i << "\n";
-           std::cout << ": maximum output channels = " << info.outputChannels << "\n";
-           std::cout << ": maximum input  channels = " << info.inputChannels << "\n";
-           std::cout << ": maximum duplex channels = " << info.duplexChannels << "\n";
-       }
-   }
-
-    if(rt.getDeviceCount() > 0){
-
-#ifdef __WINDOWS_ASIO__
-        // Set the same number of channels for both input and output.
-       inParams.deviceId = 0; // first available device
-       inParams.nChannels = 2;
-       outParams.deviceId = 0; // first available device
-       outParams.nChannels = 2;
-#else         // Set the same number of channels for both input and output.
-        inParams.deviceId = 1; // first available device
-        inParams.nChannels = 2;
-        outParams.deviceId = 0; // first available device
-        outParams.nChannels = 2;
-#endif
-    }
 
 
 }
@@ -83,7 +49,44 @@ int RtAudioDriver::callback( void *outputBuffer, void *inputBuffer, unsigned int
 }
 
 uint8_t RtAudioDriver::configure(){
-    uint32_t realBufferFrames = 256;
+    //need this cause rtaudio will possibly change the fpb depending on the api.
+    uint32_t realBufferFrames = framesPerBuffer;
+
+    // Determine the number of devices available
+#ifdef __WINDOWS_ASIO__
+   unsigned int devices = 1;//rt.getDeviceCount();
+#else
+    unsigned int devices = rt.getDeviceCount();
+#endif
+   // Scan through devices for various capabilities
+   RtAudio::DeviceInfo info;
+   for ( unsigned int i=0; i<devices; i++ ) {
+       info = rt.getDeviceInfo( i );
+       if ( info.probed == true ) {
+           // Print, for example, the maximum number of output channels for each device
+           std::cout << "device = " << i << "\n";
+           std::cout << ": maximum output channels = " << info.outputChannels << "\n";
+           std::cout << ": maximum input  channels = " << info.inputChannels << "\n";
+           std::cout << ": maximum duplex channels = " << info.duplexChannels << "\n";
+       }
+   }
+
+    if(rt.getDeviceCount() > 0){
+
+#ifdef __WINDOWS_ASIO__
+        // Set the same number of channels for both input and output.
+       inParams.deviceId = inDevIdAsio; // first available device
+       inParams.nChannels = 2;
+       outParams.deviceId = outDevIdAsio; // first available device
+       outParams.nChannels = 2;
+#else         // Set the same number of channels for both input and output.
+        inParams.deviceId = inDevId; // first available device
+        inParams.nChannels = 2;
+        outParams.deviceId = outDevId; // first available device
+        outParams.nChannels = 2;
+#endif
+    }
+
 
     std::cout << "RtAudioDriver::configure()" << "\n";
 
@@ -97,23 +100,38 @@ uint8_t RtAudioDriver::configure(){
 
     mFramesPerBuffer = realBufferFrames;
 
+
+
+    mState = Initialized;
+
     return LE_OK;
 }
 
 uint8_t RtAudioDriver::terminate(){
     std::cout << "AudioDriver::terminate\n";
+    //TODO : I should try and catch here
     rt.closeStream();
+
+    mState = NonInitialized;
 
     return LE_OK;
 }
 
 uint8_t RtAudioDriver::start(){
+    //TODO : I should try and catch here
     rt.startStream();
+
+    mState = Running;
+
     return LE_OK;
 }
 
 uint8_t RtAudioDriver::stop(){
+    //TODO : I should try and catch here
     rt.stopStream();
+
+    mState = Initialized;
+
     return LE_OK;
 }
 

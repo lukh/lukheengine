@@ -14,6 +14,3 @@ void RandomComponent::process(Sample *in, Sample *out, uint32_t framesPerBuffer)
     }
 }
 
-void RandomComponent::update(){
-
-}

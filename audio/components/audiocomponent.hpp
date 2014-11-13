@@ -4,23 +4,8 @@
   * \author  Vivien Henry
   * \version V1.0
   * \date    06/11/2014
-  * \brief   This is the abstraction Class for all users audio components
   *
-  \verbatim
-  ==============================================================================
-                        ##### AudioComponent #####
-  ==============================================================================
 
-  This abstraction class should be used for each audio component the user want to implement
-  It handles a 2 channels (stereo) stream, with one input and one output buffer.
-  Each buffer is interleaved (framesize = 2) and contain L/R samples
-
-  User has to implement process, the audio stream processing method
-  and update should be implemented to update component parameters, decide by the user.
-  The process method will be call by the Engine each time it's needed by the Driver.
-
-
-  \endverbatim
   ******************************************************************************
   * \attention
   *
@@ -31,23 +16,35 @@
 #ifndef AUDIOCOMPONENT_HPP_
 #define AUDIOCOMPONENT_HPP_
 
+/**
+  \addtogroup AudioComponents
+  @{
+  */
+
 #include "const.hpp"
 
 /**
- * \brief The AudioComponent class
- */
+ * \brief   This is the abstraction Class for all users audio components
+  \verbatim
+
+  This abstraction class should be used for each audio component the user want to implement
+  It handles a 2 channels (stereo) stream, with one input and one output buffer.
+  Each buffer is interleaved (framesize = 2) and contain L/R samples
+
+  User has to implement process, the audio stream processing method
+  and update should be implemented to update component parameters, decide by the user.
+  The process method will be call by the Engine each time it's needed by the Driver.
+
+  */
 class AudioComponent{
 	public:
         /**
-          * \brief Constructor of AudioComponent
           * \param inStCh : uint8_t value, define the Id of the stereo input buffer
           * \param outStCh : uint8_t value, define the Id of the stereo output buffer
           */
         AudioComponent(uint8_t inStCh, uint8_t outStCh);
 
-        /**
-          * \brief Destructor of AudioComponent
-          */
+
         virtual ~AudioComponent() {}
 
 
@@ -116,5 +113,9 @@ class AudioComponent{
         uint8_t mOutStereoCh;
 };
 
+
+/**
+  }
+  */
 
 #endif /* AUDIOCOMPONENT_HPP_ */

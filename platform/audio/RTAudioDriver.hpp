@@ -6,21 +6,6 @@
   * \date    09/11/2014
   * \brief   Implementation of the AbstractAudioDriver for the RtAudio engine.
   *
-  \verbatim
-  ==============================================================================
-                        ##### RtAudioDriver #####
-  ==============================================================================
-  This implementation allow user to lauch the LuKHeEngine on a computer.
-  It's not clean yet, the code is quite ugly, but it's work.
-  I don't really care about RtAudio for the moment, regarding the purpose of LuKHeEngine
-
-  configure() : init RtAudio
-  terminate() : stop properly the driver.
-  start() : start processing
-  stop() : stop processing
-
-  The callback call the driver process after set the intern buffers correctly
-  \endverbatim
 
   ******************************************************************************
   * \attention
@@ -31,6 +16,11 @@
 #ifndef RTAUDIODRIVER_HPP
 #define RTAUDIODRIVER_HPP
 
+
+/**
+  \addtogroup AudioDriver
+  @{
+  */
 
 #include "abstractaudiodriver.hpp"
 #include "RtAudio.h"
@@ -43,24 +33,30 @@ const uint32_t framesPerBuffer = 512;
 const uint8_t inDevId = 1, outDevId = 0, inDevIdAsio = 0, outDevIdAsio = 0;
 
 /**
- * \brief The RtAudioDriver class
+  \brief This implementation allow user to lauch the LuKHeEngine on a computer.
+  \verbatim
+  It's not clean yet, the code is quite ugly, but it's work.
+  I don't really care about RtAudio for the moment, regarding the purpose of LuKHeEngine
+
+  configure() : init RtAudio
+  terminate() : stop properly the driver.
+  start() : start processing
+  stop() : stop processing
+
+  The callback call the driver process after set the intern buffers correctly
+  \endverbatim
  */
 class RtAudioDriver : public AbstractAudioDriver{
     public:
         /**
-         * \brief RtAudioDriver
          * Implementation of the constructor
          * Force the AbstractAudioDriver::AbstractAudioDriver with the const parameters
          */
         RtAudioDriver();
 
-        /**
-          *Destructor of RtAudioDriver, call terminate
-          */
         ~RtAudioDriver();
 
         /**
-         * \brief configure
          * Implementation of configure for RtAudio
          * \retval LE_OK or LE_ERROR
          */
@@ -68,14 +64,12 @@ class RtAudioDriver : public AbstractAudioDriver{
 
 
         /**
-         * \brief terminate
          * Implementation of terminate for RtAudio
          * \retval LE_OK or LE_ERROR
          */
         virtual uint8_t terminate();
 
         /**
-         * \brief start
          * implementation of start for RtAudio
          * \retval LE_OK or LE_ERROR
          */
@@ -83,7 +77,6 @@ class RtAudioDriver : public AbstractAudioDriver{
 
 
         /**
-         * \brief stop
          * Implementation of stop for RtAudio
          * \retval LE_OK or LE_ERROR
          */
@@ -91,7 +84,6 @@ class RtAudioDriver : public AbstractAudioDriver{
 
 
         /**
-         * \brief callback
          * A RtAudio (API) dependent callback. static.
          * called each time a new frames buffer is available
          * \param outputBuffer pointer on the API out buffer
@@ -112,6 +104,10 @@ class RtAudioDriver : public AbstractAudioDriver{
         RtAudio rt;
         RtAudio::StreamParameters inParams, outParams;
 };
+
+/**
+  }
+  */
 
 
 #endif

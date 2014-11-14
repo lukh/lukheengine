@@ -69,7 +69,7 @@ INCLUDEPATH += . \
     audio/ \
     audio/components/ \
     platform/ \
-    platform/audio/
+    platform/computer/audio/
 
 
 SOURCES += \
@@ -77,7 +77,7 @@ SOURCES += \
     audio/abstractaudiodriver.cpp \
     audio/engine.cpp \
     audio/components/audiocomponent.cpp \
-    platform/audio/RTAudioDriver.cpp \
+    platform/computer/audio/RTAudioDriver.cpp \
     audio/components/randomcomponent.cpp
 
 HEADERS += \
@@ -86,7 +86,7 @@ HEADERS += \
     audio/components/track.hpp \
     audio/abstractaudiodriver.hpp \
     audio/engine.hpp \
-    platform/audio/RTAudioDriver.hpp \
+    platform/computer/audio/RTAudioDriver.hpp \
     audio/components/randomcomponent.hpp
 
 unix {

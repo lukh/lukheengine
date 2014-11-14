@@ -45,9 +45,13 @@ typedef unsigned long long uint64_t;
 #endif
 
 
-
-#define LE_OK 0
-#define LE_ERROR 1
+typedef enum
+{
+	LE_OK = 0x00,
+	LE_ERROR = 0x01,
+	LE_BUSY = 0x02,
+	LE_TIMEOUT = 0x03
+}LEStatu;
 
 
 #endif /* CONST_HPP_ */

@@ -19,6 +19,8 @@
 #include "const.hpp"
 #include "abstractaudiodriver.hpp"
 
+#include "sigmadeltamodulator.hpp"
+
 // -------------------------------- I2S -------------------------------------
 #define  STM32F4I2S_MAXCONNCONF 5
 
@@ -32,9 +34,9 @@ enum  STM32F4_I2SInstance{
 };
 
 class  STM32F4_I2SConnectionConfig{
-	STM32F4_I2SInstance mI2s,
-	int8_t mInBufferId,
-	int8_t mOutBufferId
+	STM32F4_I2SInstance mI2s;
+	int8_t mInBufferId;
+	int8_t mOutBufferId;
 };
 
 // ------------------------------ PWM + SDM -----------------------------------
@@ -46,7 +48,7 @@ enum STM32F4_TimerInstance{
 	TIM3,
 	TIM4,
 	TIM5
-}
+};
 
 enum STM32F4_TimerChannel{
 	TIMChannel0 = 0,
@@ -56,9 +58,9 @@ enum STM32F4_TimerChannel{
 };
 
 class STMF4_TIMPWMConnectionConfig{
-	STM32F4_TimerInstance mTimer,
-        STM32F4_TimerChannel mPwmCh0,
-        STM32F4_TimerChannel mPwmCh1,	
+	STM32F4_TimerInstance mTimer;
+  STM32F4_TimerChannel mPwmCh0;
+  STM32F4_TimerChannel mPwmCh1;
 	uint8_t mOutBufferId;
 };
 

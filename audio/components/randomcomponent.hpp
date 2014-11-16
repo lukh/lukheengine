@@ -34,7 +34,7 @@ class RandomComponent : public AudioComponent
         RandomComponent(uint8_t inStCh, uint8_t outStCh); //In the case of using in a track, inand out Ch are not used
 
 
-        ~RandomComponent() {}
+        virtual ~RandomComponent() {}
 
         /**
           * \brief Implementation of the process

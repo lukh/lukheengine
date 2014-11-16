@@ -45,7 +45,7 @@ class AudioComponent{
         AudioComponent(uint8_t inStCh, uint8_t outStCh);
 
 
-        virtual ~AudioComponent() {}
+        virtual ~AudioComponent() {};
 
 
         /**
@@ -75,14 +75,14 @@ class AudioComponent{
           * \brief Get the Id of the Input stereo channel
           * \retval uint8_t mInStereoCh
           */
-        inline const uint8_t getInStereoCh() const { return mInStereoCh; }
+        inline uint8_t getInStereoCh() const { return mInStereoCh; }
 
 
         /**
           * \brief Get the Id of the Output stereo channel
           * \retval uint8_t mOutStereoCh
           */
-        inline const uint8_t getOutStereoCh() const { return mOutStereoCh; }
+        inline uint8_t getOutStereoCh() const { return mOutStereoCh; }
 
 
         /**

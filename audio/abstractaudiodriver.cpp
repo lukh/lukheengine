@@ -33,7 +33,7 @@ uint8_t AbstractAudioDriver::getBuffer(uint8_t inStCh, Sample **inBuffer, uint8_
 void AbstractAudioDriver::setNumStereoIn(uint16_t numStereoIn){
     if(mState == Running) return;
 
-    if(numStereoIn >= 0 && numStereoIn < AUDIOCONF_MAX_INPUT_CHANNELS)
+    if(numStereoIn < AUDIOCONF_MAX_INPUT_CHANNELS)
     {
         mNumStereoIn = numStereoIn;
     }
@@ -42,7 +42,7 @@ void AbstractAudioDriver::setNumStereoIn(uint16_t numStereoIn){
 void AbstractAudioDriver::setNumStereoOut(uint16_t numStereoOut){
     if(mState == Running) return;
 
-    if(numStereoOut >= 0 && numStereoOut < AUDIOCONF_MAX_OUTPUT_CHANNELS)
+    if(numStereoOut < AUDIOCONF_MAX_OUTPUT_CHANNELS)
     {
         mNumStereoOut = numStereoOut;
     }

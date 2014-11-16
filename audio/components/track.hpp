@@ -60,7 +60,7 @@ class Track : public AudioComponent{
         Track(uint8_t inStCh, uint8_t outStCh);
 
 
-		~Track();
+				virtual ~Track();
 
         /**
          * Process is called by the Engine::process or by its AudioComponent parent

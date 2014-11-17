@@ -439,5 +439,100 @@ void STM32F4AudioDriver::mspInit(){
 
 
 void STM32F4AudioDriver::mspDeInit(){
+	
+	//**************************************************
+	// -------------------------- I2S ------------------
+	//**************************************************
+
+    /* Peripheral clock disable */
+    __SPI1_CLK_DISABLE();
+  
+    /**I2S1 GPIO Configuration    
+    PA4     ------> I2S1_WS
+    PA5     ------> I2S1_CK
+    PA7     ------> I2S1_SD 
+    */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_7);
+
+    /* Peripheral DMA DeInit*/
+    HAL_DMA_DeInit(hi2s1.hdmarx);
+
+    /* Peripheral clock disable */
+    __SPI2_CLK_DISABLE();
+  
+    /**I2S2 GPIO Configuration    
+    PC3     ------> I2S2_SD
+    PB10     ------> I2S2_CK
+    PB9     ------> I2S2_WS 
+    */
+    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_3);
+
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10|GPIO_PIN_9);
+
+    /* Peripheral DMA DeInit*/
+    HAL_DMA_DeInit(hi2s2.hdmarx);
+
+
+    /* Peripheral clock disable */
+    __SPI5_CLK_DISABLE();
+  
+    /**I2S5 GPIO Configuration    
+    PB0     ------> I2S5_CK
+    PB1     ------> I2S5_WS
+    PA10     ------> I2S5_SD 
+    */
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_0|GPIO_PIN_1);
+
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_10);
+
+    /* Peripheral DMA DeInit*/
+    HAL_DMA_DeInit(hi2s5.hdmarx);
+
+  
+		
+		//**************************************************
+		// -------------------------- PWM ------------------
+		//**************************************************
+		
+
+  /* USER CODE BEGIN TIM2_MspDeInit 0 */
+
+  /* USER CODE END TIM2_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __TIM2_CLK_DISABLE();
+  
+    /**TIM2 GPIO Configuration    
+    PA15     ------> TIM2_CH1
+    PB3     ------> TIM2_CH2 
+    */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_15);
+
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_3);
+
+    /* Peripheral DMA DeInit*/
+    HAL_DMA_DeInit(htim2.hdma[TIM_DMA_ID_CC1]);
+    HAL_DMA_DeInit(htim2.hdma[TIM_DMA_ID_CC2]);
+    HAL_DMA_DeInit(htim2.hdma[TIM_DMA_ID_CC4]);
+
+ 
+    /* Peripheral clock disable */
+    __TIM3_CLK_DISABLE();
+  
+    /**TIM3 GPIO Configuration    
+    PA6     ------> TIM3_CH1
+    PC9     ------> TIM3_CH4 
+    */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_6);
+
+    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_9);
+
+    /* Peripheral DMA DeInit*/
+    HAL_DMA_DeInit(htim3.hdma[TIM_DMA_ID_CC1]);
+    HAL_DMA_DeInit(htim3.hdma[TIM_DMA_ID_TRIGGER]);
+    HAL_DMA_DeInit(htim3.hdma[TIM_DMA_ID_CC4]);
+    HAL_DMA_DeInit(htim3.hdma[TIM_DMA_ID_UPDATE]);
+
+
+		
 }
 

@@ -24,6 +24,18 @@
 
 #include "sigmadeltamodulator.hpp"
 
+
+
+#define STM32F4AD_SR SR192000
+#define STM32F4AD_FPB 128
+
+#define SDM_OSR 64
+
+/**
+	* Globals Variables
+	*/
+	
+// --- I2S ---
 I2S_HandleTypeDef hi2s1;
 I2S_HandleTypeDef hi2s2;
 I2S_HandleTypeDef hi2s5;
@@ -34,12 +46,7 @@ DMA_HandleTypeDef hdma_spi5_rx;
 
 // --- PWM and SDM Part ----
 TIM_HandleTypeDef htim2;
-//TIM_MasterConfigTypeDef sMasterConfig2;
-//TIM_OC_InitTypeDef sConfigOC2;
-
 TIM_HandleTypeDef htim3;
-//TIM_MasterConfigTypeDef sMasterConfig3;
-//TIM_OC_InitTypeDef sConfigOC3;
 
 DMA_HandleTypeDef hdma_tim2_ch1;
 DMA_HandleTypeDef hdma_tim2_ch2_ch4;
@@ -94,17 +101,24 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 		void mspDeInit();
 
 	protected:
-		// --- I2S Handle Structures ---
-		/*I2S_HandleTypeDef hi2s1;
-		I2S_HandleTypeDef hi2s2;
-		I2S_HandleTypeDef hi2s5;
+		/**
+			* Effectives buffers
+			* The Pointers in The abstracted class will point on theses ones.
+			* The "*2" is because the drivers will used the buffers in Circular mode : 
+			* the 2 half parts of the buffers works in parallel : one is filled, the other one is used
+			*/
+		Sample mI2S1InBuffer[STM32F4AD_FPB*2];
+		Sample mI2S2InBuffer[STM32F4AD_FPB*2];
+		Sample mI2S5InBuffer[STM32F4AD_FPB*2];
 	
-		DMA_HandleTypeDef hdma_spi1_rx;
-		DMA_HandleTypeDef hdma_spi2_rx;
-		DMA_HandleTypeDef hdma_spi5_rx;*/
+		Sample mSDM1Buffer[STM32F4AD_FPB*2*SDM_OSR];
+		Sample mSDM2Buffer[STM32F4AD_FPB*2*SDM_OSR];
+	
 
+		/**
+			* peripherals structurs from ST
+			*/
 		// --- PWM and SDM Part ----
-		/*TIM_HandleTypeDef htim2;*/
 	  TIM_MasterConfigTypeDef sMasterConfig2;
 		TIM_OC_InitTypeDef sConfigOC2;
 	
@@ -112,12 +126,10 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 	  TIM_MasterConfigTypeDef sMasterConfig3;
 		TIM_OC_InitTypeDef sConfigOC3;
 	
-		/*DMA_HandleTypeDef hdma_tim2_ch1;
-		DMA_HandleTypeDef hdma_tim2_ch2_ch4;
-		DMA_HandleTypeDef hdma_tim3_ch1_trig;
-		DMA_HandleTypeDef hdma_tim3_ch4_up;	*/
-	
-		SigmaDeltaModulator *mSdm;
+		/**
+			* Link to the SDMs
+			*/
+		SigmaDeltaModulator *mSdm1, *mSdm2;
 };
 
 

@@ -253,7 +253,7 @@ class AbstractAudioDriver{
 
 
 /**
-  }
+  @}
   */
 
 #endif /* AUDIOCONF_HPP_ */

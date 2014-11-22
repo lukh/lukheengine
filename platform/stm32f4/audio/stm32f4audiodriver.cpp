@@ -3,11 +3,33 @@
 
 
 // -------------------------------- Audio Driver ------------
+// for the moment I don't care about the parameters given
 STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) : 
-	AbstractAudioDriver(sr, fpb),
+	AbstractAudioDriver(STM32F4AD_SR, STM32F4AD_FPB),
 
-	mSdm((SigmaDeltaModulator *)NULLPTR)
+	mSdm1((SigmaDeltaModulator *)NULLPTR),
+	mSdm2((SigmaDeltaModulator *)NULLPTR)
 {
+	//-----------------------
+	//--- Data Structures ---
+	//-----------------------
+	
+	setNumStereoIn(3);
+	setNumStereoOut(2);
+	
+	mInBuffers[0] = mI2S1InBuffer;
+	mInBuffers[1] = mI2S1InBuffer;
+	mInBuffers[2] = mI2S1InBuffer;
+	
+	mOutBuffers[0] = mSDM1Buffer;
+	mOutBuffers[1] = mSDM2Buffer;
+	
+	//mSdm1, 2 = new....
+	
+	
+	
+	
+	
 	//----------------------
 	// --- I2S : 1, 2, 5 ---
 	//----------------------
@@ -195,15 +217,14 @@ void STM32F4AudioDriver::mspInit(){
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	/* Peripheral DMA init*/
-
 	hdma_spi1_rx.Instance = DMA2_Stream0;
 	hdma_spi1_rx.Init.Channel = DMA_CHANNEL_3;
 	hdma_spi1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 	hdma_spi1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-	hdma_spi1_rx.Init.MemInc = DMA_MINC_DISABLE;
-	hdma_spi1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	hdma_spi1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	hdma_spi1_rx.Init.Mode = DMA_NORMAL;
+	hdma_spi1_rx.Init.MemInc = DMA_MINC_ENABLE;
+	hdma_spi1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;			//checkthat !
+	hdma_spi1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+	hdma_spi1_rx.Init.Mode = DMA_CIRCULAR;
 	hdma_spi1_rx.Init.Priority = DMA_PRIORITY_LOW;
 	hdma_spi1_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 	hdma_spi1_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
@@ -243,10 +264,10 @@ void STM32F4AudioDriver::mspInit(){
 	hdma_spi2_rx.Init.Channel = DMA_CHANNEL_0;
 	hdma_spi2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 	hdma_spi2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-	hdma_spi2_rx.Init.MemInc = DMA_MINC_DISABLE;
-	hdma_spi2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	hdma_spi2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	hdma_spi2_rx.Init.Mode = DMA_NORMAL;
+	hdma_spi2_rx.Init.MemInc = DMA_MINC_ENABLE;
+	hdma_spi2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+	hdma_spi2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+	hdma_spi2_rx.Init.Mode = DMA_CIRCULAR;
 	hdma_spi2_rx.Init.Priority = DMA_PRIORITY_LOW;
 	hdma_spi2_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 	hdma_spi2_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
@@ -287,10 +308,10 @@ void STM32F4AudioDriver::mspInit(){
 	hdma_spi5_rx.Init.Channel = DMA_CHANNEL_2;
 	hdma_spi5_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 	hdma_spi5_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-	hdma_spi5_rx.Init.MemInc = DMA_MINC_DISABLE;
-	hdma_spi5_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	hdma_spi5_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	hdma_spi5_rx.Init.Mode = DMA_NORMAL;
+	hdma_spi5_rx.Init.MemInc = DMA_MINC_ENABLE;
+	hdma_spi5_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+	hdma_spi5_rx.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+	hdma_spi5_rx.Init.Mode = DMA_CIRCULAR;
 	hdma_spi5_rx.Init.Priority = DMA_PRIORITY_LOW;
 	hdma_spi5_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 	hdma_spi5_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
@@ -333,10 +354,10 @@ void STM32F4AudioDriver::mspInit(){
     hdma_tim2_ch1.Init.Channel = DMA_CHANNEL_3;
     hdma_tim2_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim2_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim2_ch1.Init.MemInc = DMA_MINC_DISABLE;
+    hdma_tim2_ch1.Init.MemInc = DMA_MINC_ENABLE;
     hdma_tim2_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_tim2_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_tim2_ch1.Init.Mode = DMA_NORMAL;
+    hdma_tim2_ch1.Init.Mode = DMA_CIRCULAR;
     hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_LOW;
     hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     hdma_tim2_ch1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
@@ -350,10 +371,10 @@ void STM32F4AudioDriver::mspInit(){
     hdma_tim2_ch2_ch4.Init.Channel = DMA_CHANNEL_3;
     hdma_tim2_ch2_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim2_ch2_ch4.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim2_ch2_ch4.Init.MemInc = DMA_MINC_DISABLE;
+    hdma_tim2_ch2_ch4.Init.MemInc = DMA_MINC_ENABLE;
     hdma_tim2_ch2_ch4.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_tim2_ch2_ch4.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_tim2_ch2_ch4.Init.Mode = DMA_NORMAL;
+    hdma_tim2_ch2_ch4.Init.Mode = DMA_CIRCULAR;
     hdma_tim2_ch2_ch4.Init.Priority = DMA_PRIORITY_LOW;
     hdma_tim2_ch2_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     hdma_tim2_ch2_ch4.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
@@ -364,7 +385,7 @@ void STM32F4AudioDriver::mspInit(){
     /* Several peripheral DMA handle pointers point to the same DMA handle.
      Be aware that there is only one stream to perform all the requested DMAs. */
     __HAL_LINKDMA(&htim2,hdma[TIM_DMA_ID_CC2],hdma_tim2_ch2_ch4);
-    __HAL_LINKDMA(&htim2,hdma[TIM_DMA_ID_CC4],hdma_tim2_ch2_ch4);
+    //__HAL_LINKDMA(&htim2,hdma[TIM_DMA_ID_CC4],hdma_tim2_ch2_ch4);
 
   
 
@@ -398,10 +419,10 @@ void STM32F4AudioDriver::mspInit(){
     hdma_tim3_ch1_trig.Init.Channel = DMA_CHANNEL_5;
     hdma_tim3_ch1_trig.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim3_ch1_trig.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim3_ch1_trig.Init.MemInc = DMA_MINC_DISABLE;
+    hdma_tim3_ch1_trig.Init.MemInc = DMA_MINC_ENABLE;
     hdma_tim3_ch1_trig.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_tim3_ch1_trig.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_tim3_ch1_trig.Init.Mode = DMA_NORMAL;
+    hdma_tim3_ch1_trig.Init.Mode = DMA_CIRCULAR;
     hdma_tim3_ch1_trig.Init.Priority = DMA_PRIORITY_LOW;
     hdma_tim3_ch1_trig.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     hdma_tim3_ch1_trig.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
@@ -412,16 +433,16 @@ void STM32F4AudioDriver::mspInit(){
     /* Several peripheral DMA handle pointers point to the same DMA handle.
      Be aware that there is only one stream to perform all the requested DMAs. */
     __HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_CC1],hdma_tim3_ch1_trig);
-    __HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_TRIGGER],hdma_tim3_ch1_trig);
+    //__HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_TRIGGER],hdma_tim3_ch1_trig);
 
     hdma_tim3_ch4_up.Instance = DMA1_Stream2;
     hdma_tim3_ch4_up.Init.Channel = DMA_CHANNEL_5;
     hdma_tim3_ch4_up.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim3_ch4_up.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim3_ch4_up.Init.MemInc = DMA_MINC_DISABLE;
+    hdma_tim3_ch4_up.Init.MemInc = DMA_MINC_ENABLE;
     hdma_tim3_ch4_up.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_tim3_ch4_up.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_tim3_ch4_up.Init.Mode = DMA_NORMAL;
+    hdma_tim3_ch4_up.Init.Mode = DMA_CIRCULAR;
     hdma_tim3_ch4_up.Init.Priority = DMA_PRIORITY_LOW;
     hdma_tim3_ch4_up.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     hdma_tim3_ch4_up.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
@@ -432,7 +453,7 @@ void STM32F4AudioDriver::mspInit(){
     /* Several peripheral DMA handle pointers point to the same DMA handle.
      Be aware that there is only one stream to perform all the requested DMAs. */
     __HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_CC4],hdma_tim3_ch4_up);
-    __HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_UPDATE],hdma_tim3_ch4_up);
+    //__HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_UPDATE],hdma_tim3_ch4_up);
 
   
 }
@@ -536,3 +557,39 @@ void STM32F4AudioDriver::mspDeInit(){
 		
 }
 
+
+
+
+
+//---------------------------- Interruptions ------------------
+
+void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
+	
+}
+
+void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s){
+	
+}
+
+void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
+	
+	
+}
+
+void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
+	
+}
+
+
+void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
+	
+	
+}
+
+void HAL_TIM_PWM_PulseHalfFinishedCallback(TIM_HandleTypeDef *htim){
+	
+}
+
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
+	
+}

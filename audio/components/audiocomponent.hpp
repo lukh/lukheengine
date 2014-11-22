@@ -25,7 +25,6 @@
 
 /**
  * \brief   This is the abstraction Class for all users audio components
-  \verbatim
 
   This abstraction class should be used for each audio component the user want to implement
   It handles a 2 channels (stereo) stream, with one input and one output buffer.
@@ -115,7 +114,7 @@ class AudioComponent{
 
 
 /**
-  }
+  @}
   */
 
 #endif /* AUDIOCOMPONENT_HPP_ */

@@ -48,7 +48,7 @@ class RandomComponent : public AudioComponent
 };
 
 /**
-  }
+  @}
   */
 
 #endif // RANDOMCOMPONENT_H

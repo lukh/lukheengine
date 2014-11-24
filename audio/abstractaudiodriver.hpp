@@ -36,7 +36,7 @@
  * \brief The SampleRate enum
  */
 enum SampleRate{
-	SR44100 = 44100,
+		SR44100 = 44100,
     SR96000 = 96000,
     SR192000 = 192000
 };

@@ -10,7 +10,8 @@ extern STM32F4AudioDriver *audioDriver;
 const uint32_t psc = 2;
 const uint32_t period = 512;
 uint32_t dutycycle = 0;
-	
+
+// ---------------------  HAL Struct For DMA ------
 // --- I2S ---
 DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi2_rx;
@@ -21,6 +22,29 @@ DMA_HandleTypeDef hdma_tim2_ch1;
 DMA_HandleTypeDef hdma_tim2_ch2_ch4;
 DMA_HandleTypeDef hdma_tim3_ch1_trig;
 DMA_HandleTypeDef hdma_tim3_ch4_up;	
+
+
+// -------------------- Arrays for the buffers ----------------
+/**
+	* Effectives buffers
+	* The Pointers in The abstracted class will point on theses ones.
+	* The "*2" is because the drivers will used the buffers in Circular mode : 
+	* the 2 half parts of the buffers works in parallel : one is filled, the other one is used
+	*/
+__attribute__((zero_init))Sample mI2S1InBuffer[STM32F4AD_FPB*2];
+__attribute__((zero_init))Sample mI2S2InBuffer[STM32F4AD_FPB*2];
+__attribute__((zero_init))Sample mI2S5InBuffer[STM32F4AD_FPB*2];
+
+__attribute__((zero_init))Sample mSDM1Buffer[STM32F4AD_FPB*2];
+__attribute__((zero_init))Sample mSDM2Buffer[STM32F4AD_FPB*2];
+
+/**
+ * Buffers for the SDM and PWMs
+ */
+__attribute__((zero_init))SDMOutputType mPWMBuffer21[STM32F4AD_FPB*SDM_OSR];
+__attribute__((zero_init))SDMOutputType mPWMBuffer22[STM32F4AD_FPB*SDM_OSR];
+__attribute__((zero_init))SDMOutputType mPWMBuffer31[STM32F4AD_FPB*SDM_OSR];
+__attribute__((zero_init))SDMOutputType mPWMBuffer34[STM32F4AD_FPB*SDM_OSR];
 
 
 // -------------------------------- Audio Driver ------------
@@ -658,8 +682,8 @@ void HAL_TIM_PWM_PulseHalfFinishedCallback(TIM_HandleTypeDef *htim){
 	//in the case of all DMA are finished :
 	if(audioDriver->getDMAAck() == 0){
 		//change mOutBuffer : second half
-		audioDriver->setOutBufferAddr(0, &(audioDriver->getBufferSDM1()[STM32F4AD_HALFFPB]));
-		audioDriver->setOutBufferAddr(1, &(audioDriver->getBufferSDM2()[STM32F4AD_HALFFPB]));
+		audioDriver->setOutBufferAddr(0, &mSDM1Buffer[STM32F4AD_HALFFPB]);
+		audioDriver->setOutBufferAddr(1, &mSDM2Buffer[STM32F4AD_HALFFPB]);
 
 		//call the audio processing
 		audioDriver->process();
@@ -667,10 +691,10 @@ void HAL_TIM_PWM_PulseHalfFinishedCallback(TIM_HandleTypeDef *htim){
 		//change pwm buffers : second half of the buffer
 		uint32_t i;
 		for(i=STM32F4AD_HALFFPB*SDM_OSR; i < STM32F4AD_FPB*SDM_OSR; i ++){
-			audioDriver->mPWMBuffer21[i] = dutycycle;
-			audioDriver->mPWMBuffer22[i] = dutycycle;
-			audioDriver->mPWMBuffer31[i] = dutycycle;
-			audioDriver->mPWMBuffer34[i] = dutycycle;
+			mPWMBuffer21[i] = dutycycle;
+			mPWMBuffer22[i] = dutycycle;
+			mPWMBuffer31[i] = dutycycle;
+			mPWMBuffer34[i] = dutycycle;
 		}
 		//call for the sdm processing
 		
@@ -705,8 +729,8 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
 	//in the case of all DMA are finished :
 	if(audioDriver->getDMAAck() == 0){
 		//change mOutBuffer : first half
-		audioDriver->setOutBufferAddr(0, audioDriver->getBufferSDM1());
-		audioDriver->setOutBufferAddr(1, audioDriver->getBufferSDM2());
+		audioDriver->setOutBufferAddr(0, mSDM1Buffer);
+		audioDriver->setOutBufferAddr(1, mSDM2Buffer);
 
 		//call the audio processing
 		audioDriver->process();
@@ -714,10 +738,10 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
 		//change pwm buffers : first half of the buffer
 		uint32_t i;
 		for(i=0; i < STM32F4AD_HALFFPB*SDM_OSR; i ++){
-			audioDriver->mPWMBuffer21[i] = dutycycle;
-			audioDriver->mPWMBuffer22[i] = dutycycle;
-			audioDriver->mPWMBuffer31[i] = dutycycle;
-			audioDriver->mPWMBuffer34[i] = dutycycle;
+			mPWMBuffer21[i] = dutycycle;
+			mPWMBuffer22[i] = dutycycle;
+			mPWMBuffer31[i] = dutycycle;
+			mPWMBuffer34[i] = dutycycle;
 		}
 		dutycycle++;
 		if(dutycycle == period) dutycycle=0;

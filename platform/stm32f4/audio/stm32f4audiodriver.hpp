@@ -27,8 +27,8 @@
 
 //here, just some defines cause i don't care about what the user wants, for now at least
 #define STM32F4AD_SR SR192000
-#define STM32F4AD_FPB 512
-#define STM32F4AD_HALFFPB 256
+#define STM32F4AD_FPB 64
+#define STM32F4AD_HALFFPB 32
 
 #define SDM_OSR 64
 
@@ -84,9 +84,6 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 			*/
 		inline void acknDMAFlag(uint32_t flag) { mDMAAcks &= (~flag); }
 		
-	public:
-		inline Sample* getBufferSDM1(){ return mSDM1Buffer; }
-		inline Sample* getBufferSDM2(){ return mSDM2Buffer; }
 
 	protected:
 		/**
@@ -100,19 +97,6 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 		void mspDeInit();
 
 	protected:
-		/**
-			* Effectives buffers
-			* The Pointers in The abstracted class will point on theses ones.
-			* The "*2" is because the drivers will used the buffers in Circular mode : 
-			* the 2 half parts of the buffers works in parallel : one is filled, the other one is used
-			*/
-		Sample mI2S1InBuffer[STM32F4AD_FPB*2];
-		Sample mI2S2InBuffer[STM32F4AD_FPB*2];
-		Sample mI2S5InBuffer[STM32F4AD_FPB*2];
-	
-		Sample mSDM1Buffer[STM32F4AD_FPB*2];
-		Sample mSDM2Buffer[STM32F4AD_FPB*2];
-
 		/**
 			* Implemetation
 			*/
@@ -132,14 +116,7 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 			* Sigma Delta Modulator and Their buffers
 			*/
 		SigmaDeltaModulator *mSdm1, *mSdm2;
-	public: //just for testing !!
-		SDMOutputType mPWMBuffer21[STM32F4AD_FPB*SDM_OSR];
-		SDMOutputType mPWMBuffer22[STM32F4AD_FPB*SDM_OSR];
-		SDMOutputType mPWMBuffer31[STM32F4AD_FPB*SDM_OSR];
-		SDMOutputType mPWMBuffer34[STM32F4AD_FPB*SDM_OSR];
-
-
-	protected:
+	
 		//ST Structures
 		TIM_HandleTypeDef htim2;
 		TIM_HandleTypeDef htim3;

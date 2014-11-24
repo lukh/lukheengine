@@ -25,33 +25,19 @@
 #include "sigmadeltamodulator.hpp"
 
 
-
+//here, just some defines cause i don't care about what the user wants, for now at least
 #define STM32F4AD_SR SR192000
-#define STM32F4AD_FPB 128
+#define STM32F4AD_FPB 512
+#define STM32F4AD_HALFFPB 256
 
 #define SDM_OSR 64
 
-/**
-	* Globals Variables
-	*/
-	
-// --- I2S ---
-I2S_HandleTypeDef hi2s1;
-I2S_HandleTypeDef hi2s2;
-I2S_HandleTypeDef hi2s5;
+#define TIM2CH1_DMAFLAG 0x01
+#define TIM2CH2_DMAFLAG 0x02
+#define TIM3CH1_DMAFLAG 0x04
+#define TIM3CH4_DMAFLAG 0x08
 
-DMA_HandleTypeDef hdma_spi1_rx;
-DMA_HandleTypeDef hdma_spi2_rx;
-DMA_HandleTypeDef hdma_spi5_rx;
 
-// --- PWM and SDM Part ----
-TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim3;
-
-DMA_HandleTypeDef hdma_tim2_ch1;
-DMA_HandleTypeDef hdma_tim2_ch2_ch4;
-DMA_HandleTypeDef hdma_tim3_ch1_trig;
-DMA_HandleTypeDef hdma_tim3_ch4_up;	
 
 
 
@@ -88,6 +74,19 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 			\brief Stop Streaming
 			*/
     virtual uint8_t stop();
+		
+		virtual void process();
+		
+		inline uint32_t getDMAAck()  { return mDMAAcks;}
+		
+		/**
+			\brief Acknowledge one or more local drivers interuptions
+			*/
+		inline void acknDMAFlag(uint32_t flag) { mDMAAcks &= (~flag); }
+		
+	public:
+		inline Sample* getBufferSDM1(){ return mSDM1Buffer; }
+		inline Sample* getBufferSDM2(){ return mSDM2Buffer; }
 
 	protected:
 		/**
@@ -111,25 +110,46 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 		Sample mI2S2InBuffer[STM32F4AD_FPB*2];
 		Sample mI2S5InBuffer[STM32F4AD_FPB*2];
 	
-		Sample mSDM1Buffer[STM32F4AD_FPB*2*SDM_OSR];
-		Sample mSDM2Buffer[STM32F4AD_FPB*2*SDM_OSR];
-	
+		Sample mSDM1Buffer[STM32F4AD_FPB*2];
+		Sample mSDM2Buffer[STM32F4AD_FPB*2];
 
 		/**
-			* peripherals structurs from ST
+			* Implemetation
 			*/
-		// --- PWM and SDM Part ----
+	
+		// ------------------ General -------------------
+		uint32_t mDMAAcks;
+	
+		// ---------------------- I2S --------------------
+		//ST STructure
+		I2S_HandleTypeDef hi2s1;
+		I2S_HandleTypeDef hi2s2;
+		I2S_HandleTypeDef hi2s5;
+		
+		
+		// ------------------ PWM and SDM Part -----------
+		/**
+			* Sigma Delta Modulator and Their buffers
+			*/
+		SigmaDeltaModulator *mSdm1, *mSdm2;
+	public: //just for testing !!
+		SDMOutputType mPWMBuffer21[STM32F4AD_FPB*SDM_OSR];
+		SDMOutputType mPWMBuffer22[STM32F4AD_FPB*SDM_OSR];
+		SDMOutputType mPWMBuffer31[STM32F4AD_FPB*SDM_OSR];
+		SDMOutputType mPWMBuffer34[STM32F4AD_FPB*SDM_OSR];
+
+
+	protected:
+		//ST Structures
+		TIM_HandleTypeDef htim2;
+		TIM_HandleTypeDef htim3;
+		
 	  TIM_MasterConfigTypeDef sMasterConfig2;
 		TIM_OC_InitTypeDef sConfigOC2;
 	
 		/*TIM_HandleTypeDef htim3;*/
 	  TIM_MasterConfigTypeDef sMasterConfig3;
 		TIM_OC_InitTypeDef sConfigOC3;
-	
-		/**
-			* Link to the SDMs
-			*/
-		SigmaDeltaModulator *mSdm1, *mSdm2;
 };
 
 

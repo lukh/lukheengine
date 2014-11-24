@@ -1,12 +1,33 @@
 #include "stm32f4audiodriver.hpp"
 
+extern STM32F4AudioDriver *audioDriver;
+
+/**
+	* Privates Variables
+	*/
+	
+//test for pwm
+const uint32_t psc = 2;
+const uint32_t period = 512;
+uint32_t dutycycle = 0;
+	
+// --- I2S ---
+DMA_HandleTypeDef hdma_spi1_rx;
+DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi5_rx;
+
+// --- PWM and SDM Part ----
+DMA_HandleTypeDef hdma_tim2_ch1;
+DMA_HandleTypeDef hdma_tim2_ch2_ch4;
+DMA_HandleTypeDef hdma_tim3_ch1_trig;
+DMA_HandleTypeDef hdma_tim3_ch4_up;	
 
 
 // -------------------------------- Audio Driver ------------
 // for the moment I don't care about the parameters given
 STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) : 
 	AbstractAudioDriver(STM32F4AD_SR, STM32F4AD_FPB),
-
+	mDMAAcks(0),
 	mSdm1((SigmaDeltaModulator *)NULLPTR),
 	mSdm2((SigmaDeltaModulator *)NULLPTR)
 {
@@ -78,9 +99,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 	
 	//TIM2
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = psc;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0;
+  htim2.Init.Period = period;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 
   sMasterConfig2.MasterOutputTrigger = TIM_TRGO_RESET;
@@ -94,9 +115,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 	
 	//TIM3
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
+  htim3.Init.Prescaler = psc;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 0;
+  htim3.Init.Period = period;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   //
 
@@ -108,16 +129,10 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
   sConfigOC3.Pulse = 0;
   sConfigOC3.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC3.OCFastMode = TIM_OCFAST_DISABLE;
-	
-  
-	
-	
-
-
 }
 
 STM32F4AudioDriver::~STM32F4AudioDriver(){
-
+	terminate();
 }
 
 uint8_t STM32F4AudioDriver::configure(){
@@ -177,20 +192,49 @@ uint8_t STM32F4AudioDriver::configure(){
 }
 
 uint8_t STM32F4AudioDriver::terminate(){
+	stop();
+	
+	//do stuff here ?
+	
+	mspDeInit();
 	
 	return LE_OK;
 }
 
 uint8_t STM32F4AudioDriver::start(){
+	// --- general ----
+	mDMAAcks = TIM2CH1_DMAFLAG | TIM2CH2_DMAFLAG | TIM3CH1_DMAFLAG | TIM3CH4_DMAFLAG;
+	
+	// --- Start I2S ---
+	
+	// --- Start PWM + SDM ---
+	HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, mPWMBuffer21, STM32F4AD_FPB*SDM_OSR);
+	HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, mPWMBuffer22, STM32F4AD_FPB*SDM_OSR);
+	
+	HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, mPWMBuffer31, STM32F4AD_FPB*SDM_OSR);
+	HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, mPWMBuffer34, STM32F4AD_FPB*SDM_OSR);
 	
 	return LE_OK;
 }
 
 uint8_t STM32F4AudioDriver::stop(){
 	
+	//--- Start PWM + SDM ---
+	HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_2);
+	
+	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_4);
+	
 	return LE_OK;
 }
 
+void STM32F4AudioDriver::process(){
+	// ready for a new round
+	mDMAAcks = TIM2CH1_DMAFLAG | TIM2CH2_DMAFLAG | TIM3CH1_DMAFLAG | TIM3CH4_DMAFLAG;
+		
+	mEngine->process();
+}
 
 
 void STM32F4AudioDriver::mspInit(){
@@ -587,9 +631,98 @@ void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
 }
 
 void HAL_TIM_PWM_PulseHalfFinishedCallback(TIM_HandleTypeDef *htim){
+	if(htim->Instance == TIM2){
+		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+		{
+			audioDriver->acknDMAFlag(TIM2CH1_DMAFLAG);
+		}
+		
+		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+		{
+			audioDriver->acknDMAFlag(TIM2CH2_DMAFLAG);
+		}
+	}
 	
+	else if(htim->Instance == TIM3){
+		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+		{
+			audioDriver->acknDMAFlag(TIM3CH1_DMAFLAG);
+		}
+		
+		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
+		{
+			audioDriver->acknDMAFlag(TIM3CH4_DMAFLAG);
+		}
+	}
+	
+	//in the case of all DMA are finished :
+	if(audioDriver->getDMAAck() == 0){
+		//change mOutBuffer : second half
+		audioDriver->setOutBufferAddr(0, &(audioDriver->getBufferSDM1()[STM32F4AD_HALFFPB]));
+		audioDriver->setOutBufferAddr(1, &(audioDriver->getBufferSDM2()[STM32F4AD_HALFFPB]));
+
+		//call the audio processing
+		audioDriver->process();
+		
+		//change pwm buffers : second half of the buffer
+		uint32_t i;
+		for(i=STM32F4AD_HALFFPB*SDM_OSR; i < STM32F4AD_FPB*SDM_OSR; i ++){
+			audioDriver->mPWMBuffer21[i] = dutycycle;
+			audioDriver->mPWMBuffer22[i] = dutycycle;
+			audioDriver->mPWMBuffer31[i] = dutycycle;
+			audioDriver->mPWMBuffer34[i] = dutycycle;
+		}
+		//call for the sdm processing
+		
+	}
 }
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
+	if(htim->Instance == TIM2){
+		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+		{
+			audioDriver->acknDMAFlag(TIM2CH1_DMAFLAG);
+		}
+		
+		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+		{
+			audioDriver->acknDMAFlag(TIM2CH2_DMAFLAG);
+		}
+	}
 	
+	else if(htim->Instance == TIM3){
+		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+		{
+			audioDriver->acknDMAFlag(TIM3CH1_DMAFLAG);
+		}
+		
+		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
+		{
+			audioDriver->acknDMAFlag(TIM3CH4_DMAFLAG);
+		}
+	}
+	
+	//in the case of all DMA are finished :
+	if(audioDriver->getDMAAck() == 0){
+		//change mOutBuffer : first half
+		audioDriver->setOutBufferAddr(0, audioDriver->getBufferSDM1());
+		audioDriver->setOutBufferAddr(1, audioDriver->getBufferSDM2());
+
+		//call the audio processing
+		audioDriver->process();
+		
+		//change pwm buffers : first half of the buffer
+		uint32_t i;
+		for(i=0; i < STM32F4AD_HALFFPB*SDM_OSR; i ++){
+			audioDriver->mPWMBuffer21[i] = dutycycle;
+			audioDriver->mPWMBuffer22[i] = dutycycle;
+			audioDriver->mPWMBuffer31[i] = dutycycle;
+			audioDriver->mPWMBuffer34[i] = dutycycle;
+		}
+		dutycycle++;
+		if(dutycycle == period) dutycycle=0;
+		
+		//call for the sdm processing
+		
+	}
 }

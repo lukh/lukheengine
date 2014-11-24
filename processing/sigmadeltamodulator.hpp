@@ -4,7 +4,7 @@
 #include "const.hpp"
 
 
-typedef uint8_t SDMOutputType;
+typedef uint32_t SDMOutputType;
 
 class SigmaDeltaModulator{
 	

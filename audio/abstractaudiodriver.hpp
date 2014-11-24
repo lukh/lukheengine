@@ -229,7 +229,7 @@ class AbstractAudioDriver{
           */
 
     protected:  
-		SampleRate mSampleRate;
+				SampleRate mSampleRate;
 
 
         uint32_t mFramesPerBuffer;
@@ -241,7 +241,7 @@ class AbstractAudioDriver{
         uint16_t mNumStereoOut;
 
 
-		AudioDriverState mState;
+				AudioDriverState mState;
 
 
         Engine *mEngine;

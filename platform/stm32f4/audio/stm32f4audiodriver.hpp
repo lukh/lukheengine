@@ -1,11 +1,16 @@
 /**
   ******************************************************************************
-  * \file    abstractaudiodriver.hpp
+  * \file    stm32f4audiodriver.hpp
   * \author  Vivien Henry
   * \version V1.0
   * \date    06/11/2014
   *
 
+Hardware Config for PWM
+TIM2_CH2 : PB3 > CN10.31
+TIM3_CH2 : PC7 > CN10.19
+TIM4_CH1 : PB6 > CN10.17
+TIM5_CH2 : PA1 > CN7.30
 
   ******************************************************************************
   * \attention
@@ -14,11 +19,7 @@
   */
 	
 	
-	
-/**TIM2 GPIO Configuration    
-PA15     ------> TIM2_CH1
-PB3     ------> TIM2_CH2 
-*/
+
 
 #ifndef STM32F4AUDIDRIVER_HPP_
 #define STM32F4AUDIDRIVER_HPP_
@@ -39,7 +40,7 @@ PB3     ------> TIM2_CH2
 
 #define SDM_OSR 2
 
-#define STM32F4_NUMACKS 4
+#define STM32F4_NUMACKS 1
 
 
 
@@ -124,13 +125,20 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 		//ST Structures
 		TIM_HandleTypeDef htim2;
 		TIM_HandleTypeDef htim3;
+		TIM_HandleTypeDef htim4;
+		TIM_HandleTypeDef htim5;
 		
 	  TIM_MasterConfigTypeDef sMasterConfig2;
 		TIM_OC_InitTypeDef sConfigOC2;
 	
-		/*TIM_HandleTypeDef htim3;*/
 	  TIM_MasterConfigTypeDef sMasterConfig3;
 		TIM_OC_InitTypeDef sConfigOC3;
+		
+		TIM_MasterConfigTypeDef sMasterConfig4;
+		TIM_OC_InitTypeDef sConfigOC4;
+		
+		TIM_MasterConfigTypeDef sMasterConfig5;
+		TIM_OC_InitTypeDef sConfigOC5;
 };
 
 

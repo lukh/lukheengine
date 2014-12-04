@@ -12,6 +12,13 @@
   *
   ******************************************************************************
   */
+	
+	
+	
+/**TIM2 GPIO Configuration    
+PA15     ------> TIM2_CH1
+PB3     ------> TIM2_CH2 
+*/
 
 #ifndef STM32F4AUDIDRIVER_HPP_
 #define STM32F4AUDIDRIVER_HPP_
@@ -27,15 +34,12 @@
 
 //here, just some defines cause i don't care about what the user wants, for now at least
 #define STM32F4AD_SR SR192000
-#define STM32F4AD_FPB 64
-#define STM32F4AD_HALFFPB 32
+#define STM32F4AD_FPB 4
+#define STM32F4AD_HALFFPB 2
 
-#define SDM_OSR 64
+#define SDM_OSR 2
 
-#define TIM2CH1_DMAFLAG 0x01
-#define TIM2CH2_DMAFLAG 0x02
-#define TIM3CH1_DMAFLAG 0x04
-#define TIM3CH4_DMAFLAG 0x08
+#define STM32F4_NUMACKS 4
 
 
 
@@ -82,7 +86,7 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 		/**
 			\brief Acknowledge one or more local drivers interuptions
 			*/
-		inline void acknDMAFlag(uint32_t flag) { mDMAAcks &= (~flag); }
+		inline void acknOneDMA() { if(mDMAAcks > 0) mDMAAcks --; }
 		
 
 	protected:
@@ -102,7 +106,7 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 			*/
 	
 		// ------------------ General -------------------
-		uint32_t mDMAAcks;
+		volatile uint32_t mDMAAcks;
 	
 		// ---------------------- I2S --------------------
 		//ST STructure

@@ -31,27 +31,27 @@ DMA_HandleTypeDef hdma_tim3_ch4_up;
 	* The "*2" is because the drivers will used the buffers in Circular mode : 
 	* the 2 half parts of the buffers works in parallel : one is filled, the other one is used
 	*/
-__attribute__((zero_init))Sample mI2S1InBuffer[STM32F4AD_FPB*2];
-__attribute__((zero_init))Sample mI2S2InBuffer[STM32F4AD_FPB*2];
-__attribute__((zero_init))Sample mI2S5InBuffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample mI2S1InBuffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample mI2S2InBuffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample mI2S5InBuffer[STM32F4AD_FPB*2];
 
-__attribute__((zero_init))Sample mSDM1Buffer[STM32F4AD_FPB*2];
-__attribute__((zero_init))Sample mSDM2Buffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample mSDM1Buffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample mSDM2Buffer[STM32F4AD_FPB*2];
 
 /**
  * Buffers for the SDM and PWMs
  */
-__attribute__((zero_init))SDMOutputType mPWMBuffer21[STM32F4AD_FPB*SDM_OSR];
-__attribute__((zero_init))SDMOutputType mPWMBuffer22[STM32F4AD_FPB*SDM_OSR];
-__attribute__((zero_init))SDMOutputType mPWMBuffer31[STM32F4AD_FPB*SDM_OSR];
-__attribute__((zero_init))SDMOutputType mPWMBuffer34[STM32F4AD_FPB*SDM_OSR];
+static __attribute__((zero_init))SDMOutputType mPWMBuffer21[STM32F4AD_FPB*SDM_OSR];
+static __attribute__((zero_init))SDMOutputType mPWMBuffer22[STM32F4AD_FPB*SDM_OSR];
+static __attribute__((zero_init))SDMOutputType mPWMBuffer31[STM32F4AD_FPB*SDM_OSR];
+static __attribute__((zero_init))SDMOutputType mPWMBuffer34[STM32F4AD_FPB*SDM_OSR];
 
 
 // -------------------------------- Audio Driver ------------
 // for the moment I don't care about the parameters given
 STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) : 
 	AbstractAudioDriver(STM32F4AD_SR, STM32F4AD_FPB),
-	mDMAAcks(0),
+	mDMAAcks(STM32F4_NUMACKS),
 	mSdm1((SigmaDeltaModulator *)NULLPTR),
 	mSdm2((SigmaDeltaModulator *)NULLPTR)
 {
@@ -81,37 +81,37 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 	
 	//I2S1
 	hi2s1.Instance = SPI1;
-  hi2s1.Init.Mode = I2S_MODE_MASTER_RX;
-  hi2s1.Init.Standard = I2S_STANDARD_PHILLIPS;
-  hi2s1.Init.DataFormat = I2S_DATAFORMAT_24B;
-  hi2s1.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s1.Init.AudioFreq = I2S_AUDIOFREQ_96K;
-  hi2s1.Init.CPOL = I2S_CPOL_LOW;
-  hi2s1.Init.ClockSource = I2S_CLOCK_PLL;
-  hi2s1.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  	hi2s1.Init.Mode = I2S_MODE_MASTER_RX;
+  	hi2s1.Init.Standard = I2S_STANDARD_PHILLIPS;
+ 	hi2s1.Init.DataFormat = I2S_DATAFORMAT_24B;
+  	hi2s1.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+ 	hi2s1.Init.AudioFreq = I2S_AUDIOFREQ_96K;
+ 	hi2s1.Init.CPOL = I2S_CPOL_LOW;
+  	hi2s1.Init.ClockSource = I2S_CLOCK_PLL;
+ 	hi2s1.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
 	
 	//I2S2
 	hi2s2.Instance = SPI2;
-  hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
-  hi2s2.Init.Standard = I2S_STANDARD_PHILLIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
-  hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_96K;
-  hi2s2.Init.CPOL = I2S_CPOL_LOW;
-  hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
-  hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  	hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
+  	hi2s2.Init.Standard = I2S_STANDARD_PHILLIPS;
+  	hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
+  	hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+  	hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_96K;
+  	hi2s2.Init.CPOL = I2S_CPOL_LOW;
+  	hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
+  	hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
 	
 	
 	//I2S5
-  hi2s5.Instance = SPI5;
-  hi2s5.Init.Mode = I2S_MODE_MASTER_RX;
-  hi2s5.Init.Standard = I2S_STANDARD_PHILLIPS;
-  hi2s5.Init.DataFormat = I2S_DATAFORMAT_24B;
-  hi2s5.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s5.Init.AudioFreq = I2S_AUDIOFREQ_96K;
-  hi2s5.Init.CPOL = I2S_CPOL_LOW;
-  hi2s5.Init.ClockSource = I2S_CLOCK_PLL;
-  hi2s5.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  	hi2s5.Instance = SPI5;
+  	hi2s5.Init.Mode = I2S_MODE_MASTER_RX;
+  	hi2s5.Init.Standard = I2S_STANDARD_PHILLIPS;
+  	hi2s5.Init.DataFormat = I2S_DATAFORMAT_24B;
+  	hi2s5.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+  	hi2s5.Init.AudioFreq = I2S_AUDIOFREQ_96K;
+  	hi2s5.Init.CPOL = I2S_CPOL_LOW;
+  	hi2s5.Init.ClockSource = I2S_CLOCK_PLL;
+ 	hi2s5.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
 	
 	
 	//-----------------
@@ -122,37 +122,37 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 	//TODO !!!!
 	
 	//TIM2
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = psc;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = period;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  	htim2.Instance = TIM2;
+  	htim2.Init.Prescaler = psc;
+  	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  	htim2.Init.Period = period;
+  	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 
-  sMasterConfig2.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig2.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  	sMasterConfig2.MasterOutputTrigger = TIM_TRGO_RESET;
+  	sMasterConfig2.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
 
-  sConfigOC2.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC2.Pulse = 0;
-  sConfigOC2.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC2.OCFastMode = TIM_OCFAST_ENABLE;
+  	sConfigOC2.OCMode = TIM_OCMODE_PWM1;
+  	sConfigOC2.Pulse = 0;
+  	sConfigOC2.OCPolarity = TIM_OCPOLARITY_HIGH;
+  	sConfigOC2.OCFastMode = TIM_OCFAST_ENABLE;
   
 	
 	//TIM3
-  htim3.Instance = TIM3;
-  htim3.Init.Prescaler = psc;
-  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = period;
-  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  //
+  	htim3.Instance = TIM3;
+  	htim3.Init.Prescaler = psc;
+  	htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  	htim3.Init.Period = period;
+  	htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  	//
 
-  sMasterConfig3.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig3.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  //
+  	sMasterConfig3.MasterOutputTrigger = TIM_TRGO_RESET;
+  	sMasterConfig3.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  	//
 
-  sConfigOC3.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC3.Pulse = 0;
-  sConfigOC3.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC3.OCFastMode = TIM_OCFAST_DISABLE;
+  	sConfigOC3.OCMode = TIM_OCMODE_PWM1;
+  	sConfigOC3.Pulse = 0;
+  	sConfigOC3.OCPolarity = TIM_OCPOLARITY_HIGH;
+  	sConfigOC3.OCFastMode = TIM_OCFAST_DISABLE;
 }
 
 STM32F4AudioDriver::~STM32F4AudioDriver(){
@@ -164,24 +164,24 @@ uint8_t STM32F4AudioDriver::configure(){
 	//--- --- DMA INIT --- ---
 	//------------------------
 	  /* DMA controller clock enable */
-  __DMA1_CLK_ENABLE();
-  __DMA2_CLK_ENABLE();
+  	__DMA1_CLK_ENABLE();
+  	__DMA2_CLK_ENABLE();
 
-  /* DMA interrupt init */
-  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
-  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
-  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-  HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
-  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+  	/* DMA interrupt init */
+  	HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
+  	HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
+		HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
+  	HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+  	HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
+  	HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+  	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+  	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+  	HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+  	HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+  	HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  	HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
 	
 	
 	//------------------------
@@ -197,20 +197,20 @@ uint8_t STM32F4AudioDriver::configure(){
 	
 	//I2S1, 2, 5
 	HAL_I2S_Init(&hi2s1);
-  HAL_I2S_Init(&hi2s2);
-  HAL_I2S_Init(&hi2s5);
+  	HAL_I2S_Init(&hi2s2);
+  	HAL_I2S_Init(&hi2s5);
 	
 	//TIMER2
 	HAL_TIM_PWM_Init(&htim2);
 	HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig2);
-  HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC2, TIM_CHANNEL_1);
+ 	HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC2, TIM_CHANNEL_1);
   HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC2, TIM_CHANNEL_2);
 	
 	//TIMER3
 	HAL_TIM_PWM_Init(&htim3);
 	HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig3);
 	HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC3, TIM_CHANNEL_4);
+ 	HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC3, TIM_CHANNEL_4);
 	
 	return LE_OK;
 }
@@ -227,8 +227,7 @@ uint8_t STM32F4AudioDriver::terminate(){
 
 uint8_t STM32F4AudioDriver::start(){
 	// --- general ----
-	mDMAAcks = TIM2CH1_DMAFLAG | TIM2CH2_DMAFLAG | TIM3CH1_DMAFLAG | TIM3CH4_DMAFLAG;
-	
+	mDMAAcks = STM32F4_NUMACKS;
 	// --- Start I2S ---
 	
 	// --- Start PWM + SDM ---
@@ -255,7 +254,7 @@ uint8_t STM32F4AudioDriver::stop(){
 
 void STM32F4AudioDriver::process(){
 	// ready for a new round
-	mDMAAcks = TIM2CH1_DMAFLAG | TIM2CH2_DMAFLAG | TIM3CH1_DMAFLAG | TIM3CH4_DMAFLAG;
+	mDMAAcks = STM32F4_NUMACKS;
 		
 	mEngine->process();
 }
@@ -395,133 +394,133 @@ void STM32F4AudioDriver::mspInit(){
 	// -------------------------- PWM ------------------
 	//**************************************************
 	
-    /* Peripheral clock enable */
-    __TIM2_CLK_ENABLE();
+    	/* Peripheral clock enable */
+    	__TIM2_CLK_ENABLE();
+  	
+    	/**TIM2 GPIO Configuration    
+    	PA15     ------> TIM2_CH1
+    	PB3     ------> TIM2_CH2 
+    	*/
+    	GPIO_InitStruct.Pin = GPIO_PIN_15;
+    	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    	GPIO_InitStruct.Pull = GPIO_NOPULL;
+    	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+    	GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+    	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+			GPIO_InitStruct.Pin = GPIO_PIN_3;
+    	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    	GPIO_InitStruct.Pull = GPIO_NOPULL;
+			GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+    	GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+    	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    	/* Peripheral DMA init*/
   
-    /**TIM2 GPIO Configuration    
-    PA15     ------> TIM2_CH1
-    PB3     ------> TIM2_CH2 
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_15;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    	hdma_tim2_ch1.Instance = DMA1_Stream5;
+    	hdma_tim2_ch1.Init.Channel = DMA_CHANNEL_3;
+    	hdma_tim2_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    	hdma_tim2_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
+    	hdma_tim2_ch1.Init.MemInc = DMA_MINC_ENABLE;
+    	hdma_tim2_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    	hdma_tim2_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+			hdma_tim2_ch1.Init.Mode = DMA_CIRCULAR;
+    	hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_HIGH;
+			hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+			hdma_tim2_ch1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
+    	hdma_tim2_ch1.Init.MemBurst = DMA_MBURST_SINGLE;
+    	hdma_tim2_ch1.Init.PeriphBurst = DMA_PBURST_SINGLE;
+    	HAL_DMA_Init(&hdma_tim2_ch1);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_3;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    	__HAL_LINKDMA(&htim2,hdma[TIM_DMA_ID_CC1],hdma_tim2_ch1);
 
-    /* Peripheral DMA init*/
-  
-    hdma_tim2_ch1.Instance = DMA1_Stream5;
-    hdma_tim2_ch1.Init.Channel = DMA_CHANNEL_3;
-    hdma_tim2_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_tim2_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim2_ch1.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim2_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_tim2_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_tim2_ch1.Init.Mode = DMA_CIRCULAR;
-    hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    hdma_tim2_ch1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
-    hdma_tim2_ch1.Init.MemBurst = DMA_MBURST_SINGLE;
-    hdma_tim2_ch1.Init.PeriphBurst = DMA_PBURST_SINGLE;
-    HAL_DMA_Init(&hdma_tim2_ch1);
+    	hdma_tim2_ch2_ch4.Instance = DMA1_Stream6;
+    	hdma_tim2_ch2_ch4.Init.Channel = DMA_CHANNEL_3;
+    	hdma_tim2_ch2_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    	hdma_tim2_ch2_ch4.Init.PeriphInc = DMA_PINC_DISABLE;
+    	hdma_tim2_ch2_ch4.Init.MemInc = DMA_MINC_ENABLE;
+    	hdma_tim2_ch2_ch4.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    	hdma_tim2_ch2_ch4.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    	hdma_tim2_ch2_ch4.Init.Mode = DMA_CIRCULAR;
+    	hdma_tim2_ch2_ch4.Init.Priority = DMA_PRIORITY_HIGH;
+			hdma_tim2_ch2_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    	hdma_tim2_ch2_ch4.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
+    	hdma_tim2_ch2_ch4.Init.MemBurst = DMA_MBURST_SINGLE;
+    	hdma_tim2_ch2_ch4.Init.PeriphBurst = DMA_PBURST_SINGLE;
+    	HAL_DMA_Init(&hdma_tim2_ch2_ch4);
 
-    __HAL_LINKDMA(&htim2,hdma[TIM_DMA_ID_CC1],hdma_tim2_ch1);
-
-    hdma_tim2_ch2_ch4.Instance = DMA1_Stream6;
-    hdma_tim2_ch2_ch4.Init.Channel = DMA_CHANNEL_3;
-    hdma_tim2_ch2_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_tim2_ch2_ch4.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim2_ch2_ch4.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim2_ch2_ch4.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_tim2_ch2_ch4.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_tim2_ch2_ch4.Init.Mode = DMA_CIRCULAR;
-    hdma_tim2_ch2_ch4.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_tim2_ch2_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    hdma_tim2_ch2_ch4.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
-    hdma_tim2_ch2_ch4.Init.MemBurst = DMA_MBURST_SINGLE;
-    hdma_tim2_ch2_ch4.Init.PeriphBurst = DMA_PBURST_SINGLE;
-    HAL_DMA_Init(&hdma_tim2_ch2_ch4);
-
-    /* Several peripheral DMA handle pointers point to the same DMA handle.
-     Be aware that there is only one stream to perform all the requested DMAs. */
-    __HAL_LINKDMA(&htim2,hdma[TIM_DMA_ID_CC2],hdma_tim2_ch2_ch4);
-    //__HAL_LINKDMA(&htim2,hdma[TIM_DMA_ID_CC4],hdma_tim2_ch2_ch4);
+    	/* Several peripheral DMA handle pointers point to the same DMA handle.
+    	 Be aware that there is only one stream to perform all the requested DMAs. */
+    	__HAL_LINKDMA(&htim2,hdma[TIM_DMA_ID_CC2],hdma_tim2_ch2_ch4);
+    	//__HAL_LINKDMA(&htim2,hdma[TIM_DMA_ID_CC4],hdma_tim2_ch2_ch4);
 
   
 
 
 	
 	
-    /* Peripheral clock enable */
-    __TIM3_CLK_ENABLE();
+    	/* Peripheral clock enable */
+    	__TIM3_CLK_ENABLE();
   
-    /**TIM3 GPIO Configuration    
-    PA6     ------> TIM3_CH1
-    PC9     ------> TIM3_CH4 
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_6;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    	/**TIM3 GPIO Configuration    
+    	PA6     ------> TIM3_CH1
+    	PC9     ------> TIM3_CH4 
+    	*/
+    	GPIO_InitStruct.Pin = GPIO_PIN_6;
+    	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    	GPIO_InitStruct.Pull = GPIO_NOPULL;
+    	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+    	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+    	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    	GPIO_InitStruct.Pin = GPIO_PIN_9;
+    	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    	GPIO_InitStruct.Pull = GPIO_NOPULL;
+    	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+    	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+    	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    /* Peripheral DMA init*/
+    	/* Peripheral DMA init*/
   
-    hdma_tim3_ch1_trig.Instance = DMA1_Stream4;
-    hdma_tim3_ch1_trig.Init.Channel = DMA_CHANNEL_5;
-    hdma_tim3_ch1_trig.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_tim3_ch1_trig.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim3_ch1_trig.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim3_ch1_trig.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_tim3_ch1_trig.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_tim3_ch1_trig.Init.Mode = DMA_CIRCULAR;
-    hdma_tim3_ch1_trig.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_tim3_ch1_trig.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    hdma_tim3_ch1_trig.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
-    hdma_tim3_ch1_trig.Init.MemBurst = DMA_MBURST_SINGLE;
-    hdma_tim3_ch1_trig.Init.PeriphBurst = DMA_PBURST_SINGLE;
-    HAL_DMA_Init(&hdma_tim3_ch1_trig);
+    	hdma_tim3_ch1_trig.Instance = DMA1_Stream4;
+    	hdma_tim3_ch1_trig.Init.Channel = DMA_CHANNEL_5;
+    	hdma_tim3_ch1_trig.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    	hdma_tim3_ch1_trig.Init.PeriphInc = DMA_PINC_DISABLE;
+    	hdma_tim3_ch1_trig.Init.MemInc = DMA_MINC_ENABLE;
+    	hdma_tim3_ch1_trig.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    	hdma_tim3_ch1_trig.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    	hdma_tim3_ch1_trig.Init.Mode = DMA_CIRCULAR;
+    	hdma_tim3_ch1_trig.Init.Priority = DMA_PRIORITY_HIGH;
+    	hdma_tim3_ch1_trig.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    	hdma_tim3_ch1_trig.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
+    	hdma_tim3_ch1_trig.Init.MemBurst = DMA_MBURST_SINGLE;
+    	hdma_tim3_ch1_trig.Init.PeriphBurst = DMA_PBURST_SINGLE;
+    	HAL_DMA_Init(&hdma_tim3_ch1_trig);
 
-    /* Several peripheral DMA handle pointers point to the same DMA handle.
-     Be aware that there is only one stream to perform all the requested DMAs. */
-    __HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_CC1],hdma_tim3_ch1_trig);
-    //__HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_TRIGGER],hdma_tim3_ch1_trig);
+    	/* Several peripheral DMA handle pointers point to the same DMA handle.
+    	 Be aware that there is only one stream to perform all the requested DMAs. */
+    	__HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_CC1],hdma_tim3_ch1_trig);
+   	 //__HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_TRIGGER],hdma_tim3_ch1_trig);
 
-    hdma_tim3_ch4_up.Instance = DMA1_Stream2;
-    hdma_tim3_ch4_up.Init.Channel = DMA_CHANNEL_5;
-    hdma_tim3_ch4_up.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_tim3_ch4_up.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim3_ch4_up.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim3_ch4_up.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_tim3_ch4_up.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_tim3_ch4_up.Init.Mode = DMA_CIRCULAR;
-    hdma_tim3_ch4_up.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_tim3_ch4_up.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    hdma_tim3_ch4_up.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
-    hdma_tim3_ch4_up.Init.MemBurst = DMA_MBURST_SINGLE;
-    hdma_tim3_ch4_up.Init.PeriphBurst = DMA_PBURST_SINGLE;
-    HAL_DMA_Init(&hdma_tim3_ch4_up);
+   	hdma_tim3_ch4_up.Instance = DMA1_Stream2;
+    	hdma_tim3_ch4_up.Init.Channel = DMA_CHANNEL_5;
+    	hdma_tim3_ch4_up.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    	hdma_tim3_ch4_up.Init.PeriphInc = DMA_PINC_DISABLE;
+    	hdma_tim3_ch4_up.Init.MemInc = DMA_MINC_ENABLE;
+    	hdma_tim3_ch4_up.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    	hdma_tim3_ch4_up.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    	hdma_tim3_ch4_up.Init.Mode = DMA_CIRCULAR;
+    	hdma_tim3_ch4_up.Init.Priority = DMA_PRIORITY_HIGH;
+    	hdma_tim3_ch4_up.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    	hdma_tim3_ch4_up.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
+    	hdma_tim3_ch4_up.Init.MemBurst = DMA_MBURST_SINGLE;
+    	hdma_tim3_ch4_up.Init.PeriphBurst = DMA_PBURST_SINGLE;
+    	HAL_DMA_Init(&hdma_tim3_ch4_up);
 
-    /* Several peripheral DMA handle pointers point to the same DMA handle.
-     Be aware that there is only one stream to perform all the requested DMAs. */
-    __HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_CC4],hdma_tim3_ch4_up);
-    //__HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_UPDATE],hdma_tim3_ch4_up);
+    	/* Several peripheral DMA handle pointers point to the same DMA handle.
+    	 Be aware that there is only one stream to perform all the requested DMAs. */
+    	__HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_CC4],hdma_tim3_ch4_up);
+    	//__HAL_LINKDMA(&htim3,hdma[TIM_DMA_ID_UPDATE],hdma_tim3_ch4_up);
 
   
 }
@@ -579,9 +578,9 @@ void STM32F4AudioDriver::mspDeInit(){
 
   
 		
-		//**************************************************
-		// -------------------------- PWM ------------------
-		//**************************************************
+    //**************************************************
+    // -------------------------- PWM ------------------
+    //**************************************************
 		
 
   /* USER CODE BEGIN TIM2_MspDeInit 0 */
@@ -655,31 +654,9 @@ void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
 }
 
 void HAL_TIM_PWM_PulseHalfFinishedCallback(TIM_HandleTypeDef *htim){
-	if(htim->Instance == TIM2){
-		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
-		{
-			audioDriver->acknDMAFlag(TIM2CH1_DMAFLAG);
-		}
-		
-		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
-		{
-			audioDriver->acknDMAFlag(TIM2CH2_DMAFLAG);
-		}
-	}
+	audioDriver->acknOneDMA();
 	
-	else if(htim->Instance == TIM3){
-		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
-		{
-			audioDriver->acknDMAFlag(TIM3CH1_DMAFLAG);
-		}
-		
-		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
-		{
-			audioDriver->acknDMAFlag(TIM3CH4_DMAFLAG);
-		}
-	}
-	
-	//in the case of all DMA are finished :
+	//in the case of all PWM DMA are finished :
 	if(audioDriver->getDMAAck() == 0){
 		//change mOutBuffer : second half
 		audioDriver->setOutBufferAddr(0, &mSDM1Buffer[STM32F4AD_HALFFPB]);
@@ -702,29 +679,7 @@ void HAL_TIM_PWM_PulseHalfFinishedCallback(TIM_HandleTypeDef *htim){
 }
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
-	if(htim->Instance == TIM2){
-		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
-		{
-			audioDriver->acknDMAFlag(TIM2CH1_DMAFLAG);
-		}
-		
-		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
-		{
-			audioDriver->acknDMAFlag(TIM2CH2_DMAFLAG);
-		}
-	}
-	
-	else if(htim->Instance == TIM3){
-		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
-		{
-			audioDriver->acknDMAFlag(TIM3CH1_DMAFLAG);
-		}
-		
-		else if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
-		{
-			audioDriver->acknDMAFlag(TIM3CH4_DMAFLAG);
-		}
-	}
+	audioDriver->acknOneDMA();
 	
 	//in the case of all DMA are finished :
 	if(audioDriver->getDMAAck() == 0){
@@ -744,7 +699,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
 			mPWMBuffer34[i] = dutycycle;
 		}
 		dutycycle++;
-		if(dutycycle == period) dutycycle=0;
+		if(dutycycle == (period)) dutycycle=0;
 		
 		//call for the sdm processing
 		

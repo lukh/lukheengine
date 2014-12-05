@@ -40,7 +40,7 @@ TIM5_CH2 : PA1 > CN7.30
 
 #define SDM_OSR 2
 
-#define STM32F4_NUMACKS 1
+#define STM32F4_NUMACKS 4
 
 
 

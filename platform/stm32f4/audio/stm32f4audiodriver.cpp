@@ -131,7 +131,7 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		sMasterConfig2.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
 
 		sConfigOC2.OCMode = TIM_OCMODE_PWM1;
-		sConfigOC2.Pulse = 0;
+		sConfigOC2.Pulse = period/2;
 		sConfigOC2.OCPolarity = TIM_OCPOLARITY_HIGH;
 		sConfigOC2.OCFastMode = TIM_OCFAST_ENABLE;
 
@@ -149,9 +149,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		//
 
 		sConfigOC3.OCMode = TIM_OCMODE_PWM1;
-		sConfigOC3.Pulse = 0;
+		sConfigOC3.Pulse = period/2;
 		sConfigOC3.OCPolarity = TIM_OCPOLARITY_HIGH;
-		sConfigOC3.OCFastMode = TIM_OCFAST_DISABLE;
+		sConfigOC3.OCFastMode = TIM_OCFAST_ENABLE;
 
 		//TIM4
 		htim4.Instance = TIM4;
@@ -166,9 +166,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		//
 
 		sConfigOC4.OCMode = TIM_OCMODE_PWM1;
-		sConfigOC4.Pulse = 0;
+		sConfigOC4.Pulse = period/2;
 		sConfigOC4.OCPolarity = TIM_OCPOLARITY_HIGH;
-		sConfigOC4.OCFastMode = TIM_OCFAST_DISABLE;
+		sConfigOC4.OCFastMode = TIM_OCFAST_ENABLE;
 
 		//TIM5
 		htim5.Instance = TIM5;
@@ -183,9 +183,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		//
 
 		sConfigOC5.OCMode = TIM_OCMODE_PWM1;
-		sConfigOC5.Pulse = 0;
+		sConfigOC5.Pulse = period/2;
 		sConfigOC5.OCPolarity = TIM_OCPOLARITY_HIGH;
-		sConfigOC5.OCFastMode = TIM_OCFAST_DISABLE;
+		sConfigOC5.OCFastMode = TIM_OCFAST_ENABLE;
 }
 
 STM32F4AudioDriver::~STM32F4AudioDriver(){
@@ -272,11 +272,17 @@ uint8_t STM32F4AudioDriver::start(){
 	// --- Start I2S ---
 	
 	// --- Start PWM + SDM ---
-	//HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, mPWMBuffer22, STM32F4AD_FPB*SDM_OSR);
-	//HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_2, mPWMBuffer32, STM32F4AD_FPB*SDM_OSR);
+	HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, mPWMBuffer22, STM32F4AD_FPB*SDM_OSR);
+	HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_2, mPWMBuffer32, STM32F4AD_FPB*SDM_OSR);
 	
 	HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_1, mPWMBuffer41, STM32F4AD_FPB*SDM_OSR);
-	//HAL_TIM_PWM_Start_DMA(&htim5, TIM_CHANNEL_2, mPWMBuffer52, STM32F4AD_FPB*SDM_OSR);
+	HAL_TIM_PWM_Start_DMA(&htim5, TIM_CHANNEL_2, mPWMBuffer52, STM32F4AD_FPB*SDM_OSR);
+	
+  /*HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_2);*/
 	
 	return LE_OK;
 }
@@ -368,7 +374,7 @@ void STM32F4AudioDriver::mspInit(){
 
 		/* Peripheral DMA init*/
 
-		hdma_spi2_rx.Instance = DMA1_Stream3;
+		/*hdma_spi2_rx.Instance = DMA1_Stream3;
 		hdma_spi2_rx.Init.Channel = DMA_CHANNEL_0;
 		hdma_spi2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 		hdma_spi2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -383,7 +389,7 @@ void STM32F4AudioDriver::mspInit(){
 		hdma_spi2_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
 		HAL_DMA_Init(&hdma_spi2_rx);
 
-		__HAL_LINKDMA(&hi2s2,hdmarx,hdma_spi2_rx);
+		__HAL_LINKDMA(&hi2s2,hdmarx,hdma_spi2_rx);*/
 
 
 
@@ -412,7 +418,7 @@ void STM32F4AudioDriver::mspInit(){
 
 		/* Peripheral DMA init*/
 
-		hdma_spi5_rx.Instance = DMA2_Stream3;
+		/*hdma_spi5_rx.Instance = DMA2_Stream3;
 		hdma_spi5_rx.Init.Channel = DMA_CHANNEL_2;
 		hdma_spi5_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 		hdma_spi5_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -427,7 +433,7 @@ void STM32F4AudioDriver::mspInit(){
 		hdma_spi5_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
 		HAL_DMA_Init(&hdma_spi5_rx);
 
-		__HAL_LINKDMA(&hi2s5,hdmarx,hdma_spi5_rx);
+		__HAL_LINKDMA(&hi2s5,hdmarx,hdma_spi5_rx);*/
 
 
 
@@ -493,13 +499,13 @@ void STM32F4AudioDriver::mspInit(){
 
 		hdma_tim3_ch2.Instance = DMA1_Stream5;
 		hdma_tim3_ch2.Init.Channel = DMA_CHANNEL_5;
-		hdma_tim3_ch2.Init.Direction = DMA_PERIPH_TO_MEMORY;
+		hdma_tim3_ch2.Init.Direction = DMA_MEMORY_TO_PERIPH;
 		hdma_tim3_ch2.Init.PeriphInc = DMA_PINC_DISABLE;
 		hdma_tim3_ch2.Init.MemInc = DMA_MINC_ENABLE;
 		hdma_tim3_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
 		hdma_tim3_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
 		hdma_tim3_ch2.Init.Mode = DMA_CIRCULAR;
-		hdma_tim3_ch2.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+		hdma_tim3_ch2.Init.Priority = DMA_PRIORITY_HIGH;
 		hdma_tim3_ch2.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		hdma_tim3_ch2.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
 		hdma_tim3_ch2.Init.MemBurst = DMA_MBURST_SINGLE;
@@ -526,13 +532,13 @@ void STM32F4AudioDriver::mspInit(){
 
 		hdma_tim4_ch1.Instance = DMA1_Stream0;
 		hdma_tim4_ch1.Init.Channel = DMA_CHANNEL_2;
-		hdma_tim4_ch1.Init.Direction = DMA_PERIPH_TO_MEMORY;
+		hdma_tim4_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
 		hdma_tim4_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
 		hdma_tim4_ch1.Init.MemInc = DMA_MINC_ENABLE;
 		hdma_tim4_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
 		hdma_tim4_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
 		hdma_tim4_ch1.Init.Mode = DMA_CIRCULAR;
-		hdma_tim4_ch1.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+		hdma_tim4_ch1.Init.Priority = DMA_PRIORITY_HIGH;
 		hdma_tim4_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		hdma_tim4_ch1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
 		hdma_tim4_ch1.Init.MemBurst = DMA_MBURST_SINGLE;
@@ -562,13 +568,13 @@ void STM32F4AudioDriver::mspInit(){
 
 		hdma_tim5_ch2.Instance = DMA1_Stream4;
 		hdma_tim5_ch2.Init.Channel = DMA_CHANNEL_6;
-		hdma_tim5_ch2.Init.Direction = DMA_PERIPH_TO_MEMORY;
+		hdma_tim5_ch2.Init.Direction = DMA_MEMORY_TO_PERIPH;
 		hdma_tim5_ch2.Init.PeriphInc = DMA_PINC_DISABLE;
 		hdma_tim5_ch2.Init.MemInc = DMA_MINC_ENABLE;
 		hdma_tim5_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
 		hdma_tim5_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
 		hdma_tim5_ch2.Init.Mode = DMA_CIRCULAR;
-		hdma_tim5_ch2.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+		hdma_tim5_ch2.Init.Priority = DMA_PRIORITY_HIGH;
 		hdma_tim5_ch2.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		hdma_tim5_ch2.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
 		hdma_tim5_ch2.Init.MemBurst = DMA_MBURST_SINGLE;

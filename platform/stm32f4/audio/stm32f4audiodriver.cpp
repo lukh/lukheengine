@@ -119,6 +119,38 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 
 		//SDM
 		//TODO !!!!
+		
+		//TIM1
+		htim1.Instance = TIM1;
+		htim1.Init.Prescaler = 1;
+		htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+		htim1.Init.Period = 63;
+		htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+		htim1.Init.RepetitionCounter = 0;
+		
+		
+		sMasterConfig1.MasterOutputTrigger = TIM_TRGO_ENABLE;
+		sMasterConfig1.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
+		
+		sSlaveConfig1.SlaveMode = TIM_SLAVEMODE_TRIGGER;
+		sSlaveConfig1.InputTrigger = TIM_TS_TI1F_ED;
+		
+		sBreakDeadTimeConfig1.OffStateRunMode = TIM_OSSR_DISABLE;
+		sBreakDeadTimeConfig1.OffStateIDLEMode = TIM_OSSI_DISABLE;
+		sBreakDeadTimeConfig1.LockLevel = TIM_LOCKLEVEL_OFF;
+		sBreakDeadTimeConfig1.DeadTime = 0;
+		sBreakDeadTimeConfig1.BreakState = TIM_BREAK_DISABLE;
+		sBreakDeadTimeConfig1.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+		sBreakDeadTimeConfig1.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+		
+		sConfigOC1.OCMode = TIM_OCMODE_PWM1;
+		sConfigOC1.Pulse = 4;
+		sConfigOC1.OCPolarity = TIM_OCPOLARITY_HIGH;
+		sConfigOC1.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+		sConfigOC1.OCFastMode = TIM_OCFAST_DISABLE;
+		sConfigOC1.OCIdleState = TIM_OCIDLESTATE_RESET;
+		sConfigOC1.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+		
 
 		//TIM2
 		htim2.Instance = TIM2;
@@ -126,6 +158,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim2.Init.Period = period;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+		
+		sSlaveConfig2.SlaveMode = TIM_SLAVEMODE_TRIGGER;
+		sSlaveConfig2.InputTrigger = TIM_TS_ITR0;
 
 		sMasterConfig2.MasterOutputTrigger = TIM_TRGO_RESET;
 		sMasterConfig2.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
@@ -144,6 +179,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		//
 
+		sSlaveConfig3.SlaveMode = TIM_SLAVEMODE_TRIGGER;
+		sSlaveConfig3.InputTrigger = TIM_TS_ITR0;
+
 		sMasterConfig3.MasterOutputTrigger = TIM_TRGO_RESET;
 		sMasterConfig3.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
 		//
@@ -160,6 +198,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		htim4.Init.Period = period;
 		htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		//
+		
+		sSlaveConfig4.SlaveMode = TIM_SLAVEMODE_TRIGGER;
+		sSlaveConfig4.InputTrigger = TIM_TS_ITR0;
 
 		sMasterConfig4.MasterOutputTrigger = TIM_TRGO_RESET;
 		sMasterConfig4.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
@@ -177,6 +218,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		htim5.Init.Period = period;
 		htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		//
+		
+		sSlaveConfig5.SlaveMode = TIM_SLAVEMODE_TRIGGER;
+		sSlaveConfig5.InputTrigger = TIM_TS_ITR0;
 
 		sMasterConfig5.MasterOutputTrigger = TIM_TRGO_RESET;
 		sMasterConfig5.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
@@ -232,24 +276,35 @@ uint8_t STM32F4AudioDriver::configure(){
 	HAL_I2S_Init(&hi2s1);
 	HAL_I2S_Init(&hi2s2);
 	HAL_I2S_Init(&hi2s5);
+	
+	//TIMER1
+	HAL_TIM_PWM_Init(&htim1);
+	HAL_TIM_SlaveConfigSynchronization(&htim1, &sSlaveConfig1);
+	HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig1);
+	HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig1);
+	HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_1);
 
 	//TIMER2
 	HAL_TIM_PWM_Init(&htim2);
+	HAL_TIM_SlaveConfigSynchronization(&htim2, &sSlaveConfig2);
 	HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig2);
 	HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC2, TIM_CHANNEL_2);
 
 	//TIMER3
 	HAL_TIM_PWM_Init(&htim3);
+	HAL_TIM_SlaveConfigSynchronization(&htim3, &sSlaveConfig3);
 	HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig3);
 	HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC3, TIM_CHANNEL_2);
 	
 	//TIMER4
 	HAL_TIM_PWM_Init(&htim4);
+	HAL_TIM_SlaveConfigSynchronization(&htim4, &sSlaveConfig4);
 	HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig4);
 	HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC4, TIM_CHANNEL_1);
 	
 	//TIMER5
 	HAL_TIM_PWM_Init(&htim5);
+	HAL_TIM_SlaveConfigSynchronization(&htim5, &sSlaveConfig5);
 	HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig5);
 	HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC5, TIM_CHANNEL_2);
 	
@@ -272,6 +327,8 @@ uint8_t STM32F4AudioDriver::start(){
 	// --- Start I2S ---
 	
 	// --- Start PWM + SDM ---
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	
 	HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_2, mPWMBuffer22, STM32F4AD_FPB*SDM_OSR);
 	HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_2, mPWMBuffer32, STM32F4AD_FPB*SDM_OSR);
 	
@@ -290,6 +347,8 @@ uint8_t STM32F4AudioDriver::start(){
 uint8_t STM32F4AudioDriver::stop(){
 	
 	//--- Start PWM + SDM ---
+	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+	
 	HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_2);
 	
@@ -331,7 +390,7 @@ void STM32F4AudioDriver::mspInit(){
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 		/* Peripheral DMA init*/
-		hdma_spi1_rx.Instance = DMA2_Stream0;
+		/*hdma_spi1_rx.Instance = DMA2_Stream0;
 		hdma_spi1_rx.Init.Channel = DMA_CHANNEL_3;
 		hdma_spi1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 		hdma_spi1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -346,7 +405,7 @@ void STM32F4AudioDriver::mspInit(){
 		hdma_spi1_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;		
 		HAL_DMA_Init(&hdma_spi1_rx);
 
-		__HAL_LINKDMA(&hi2s1,hdmarx,hdma_spi1_rx);
+		__HAL_LINKDMA(&hi2s1,hdmarx,hdma_spi1_rx);*/
 
 
 
@@ -440,6 +499,18 @@ void STM32F4AudioDriver::mspInit(){
 		//**************************************************
 		// -------------------------- PWM ------------------
 		//**************************************************
+		
+		__TIM1_CLK_ENABLE();
+  
+    /**TIM1 GPIO Configuration    
+    PA8     ------> TIM1_CH1 
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_8;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 		//tim2
 		/* Peripheral clock enable */
@@ -643,9 +714,15 @@ void STM32F4AudioDriver::mspDeInit(){
 		//**************************************************
 
 
-		/* USER CODE BEGIN TIM2_MspDeInit 0 */
-
-		/* USER CODE END TIM2_MspDeInit 0 */
+		__TIM1_CLK_DISABLE();
+  
+    /**TIM1 GPIO Configuration    
+    PA8     ------> TIM1_CH1 
+    */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8);
+		
+		
+		
 		/* Peripheral clock disable */
 		__TIM2_CLK_DISABLE();
 

@@ -12,6 +12,8 @@ TIM3_CH2 : PC7 > CN10.19
 TIM4_CH1 : PB6 > CN10.17
 TIM5_CH2 : PA1 > CN7.30
 
+PA8     ------> TIM1_CH1 
+
   ******************************************************************************
   * \attention
   *
@@ -35,12 +37,12 @@ TIM5_CH2 : PA1 > CN7.30
 
 //here, just some defines cause i don't care about what the user wants, for now at least
 #define STM32F4AD_SR SR192000
-#define STM32F4AD_FPB 4
-#define STM32F4AD_HALFFPB 2
+#define STM32F4AD_FPB 256
+#define STM32F4AD_HALFFPB 128
 
 #define SDM_OSR 2
 
-#define STM32F4_NUMACKS 4
+#define STM32F4_NUMACKS 1
 
 
 
@@ -123,21 +125,32 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 		SigmaDeltaModulator *mSdm1, *mSdm2;
 	
 		//ST Structures
+		TIM_HandleTypeDef htim1;
+		
 		TIM_HandleTypeDef htim2;
 		TIM_HandleTypeDef htim3;
 		TIM_HandleTypeDef htim4;
 		TIM_HandleTypeDef htim5;
 		
+		TIM_MasterConfigTypeDef sMasterConfig1;
+		TIM_SlaveConfigTypeDef sSlaveConfig1;
+		TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig1;
+		TIM_OC_InitTypeDef sConfigOC1;
+		
 	  TIM_MasterConfigTypeDef sMasterConfig2;
+		TIM_SlaveConfigTypeDef sSlaveConfig2;
 		TIM_OC_InitTypeDef sConfigOC2;
 	
 	  TIM_MasterConfigTypeDef sMasterConfig3;
+		TIM_SlaveConfigTypeDef sSlaveConfig3;
 		TIM_OC_InitTypeDef sConfigOC3;
 		
 		TIM_MasterConfigTypeDef sMasterConfig4;
+		TIM_SlaveConfigTypeDef sSlaveConfig4;
 		TIM_OC_InitTypeDef sConfigOC4;
 		
 		TIM_MasterConfigTypeDef sMasterConfig5;
+		TIM_SlaveConfigTypeDef sSlaveConfig5;
 		TIM_OC_InitTypeDef sConfigOC5;
 };
 

@@ -126,32 +126,10 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 	
 		//ST Structures
 		TIM_HandleTypeDef htim1;
-		
-		TIM_HandleTypeDef htim2;
-		TIM_HandleTypeDef htim3;
-		TIM_HandleTypeDef htim4;
-		TIM_HandleTypeDef htim5;
-		
+
 		TIM_MasterConfigTypeDef sMasterConfig1;
-		TIM_SlaveConfigTypeDef sSlaveConfig1;
 		TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig1;
 		TIM_OC_InitTypeDef sConfigOC1;
-		
-	  TIM_MasterConfigTypeDef sMasterConfig2;
-		TIM_SlaveConfigTypeDef sSlaveConfig2;
-		TIM_OC_InitTypeDef sConfigOC2;
-	
-	  TIM_MasterConfigTypeDef sMasterConfig3;
-		TIM_SlaveConfigTypeDef sSlaveConfig3;
-		TIM_OC_InitTypeDef sConfigOC3;
-		
-		TIM_MasterConfigTypeDef sMasterConfig4;
-		TIM_SlaveConfigTypeDef sSlaveConfig4;
-		TIM_OC_InitTypeDef sConfigOC4;
-		
-		TIM_MasterConfigTypeDef sMasterConfig5;
-		TIM_SlaveConfigTypeDef sSlaveConfig5;
-		TIM_OC_InitTypeDef sConfigOC5;
 };
 
 

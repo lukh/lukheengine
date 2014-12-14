@@ -124,7 +124,7 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		htim1.Instance = TIM1;
 		htim1.Init.Prescaler = 1;
 		htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-		htim1.Init.Period = 255;
+		htim1.Init.Period = period - 1;
 		htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim1.Init.RepetitionCounter = 0;
 		
@@ -164,7 +164,7 @@ uint8_t STM32F4AudioDriver::configure(){
 	__DMA1_CLK_ENABLE();
 	__DMA2_CLK_ENABLE();
 
-	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+	//HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 	
 		/* DMA interrupt init */
 	//I2S
@@ -426,14 +426,14 @@ void STM32F4AudioDriver::mspInit(){
 		
 		hdma_tim1_ch1.Instance = DMA2_Stream1;
     hdma_tim1_ch1.Init.Channel = DMA_CHANNEL_6;
-    hdma_tim1_ch1.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_tim1_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim1_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_tim1_ch1.Init.MemInc = DMA_MINC_ENABLE;
     hdma_tim1_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim1_ch1.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch1.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_tim1_ch1.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+    hdma_tim1_ch1.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_tim1_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     hdma_tim1_ch1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
     hdma_tim1_ch1.Init.MemBurst = DMA_MBURST_SINGLE;
     hdma_tim1_ch1.Init.PeriphBurst = DMA_PBURST_SINGLE;
@@ -443,14 +443,14 @@ void STM32F4AudioDriver::mspInit(){
 
     hdma_tim1_ch2.Instance = DMA2_Stream2;
     hdma_tim1_ch2.Init.Channel = DMA_CHANNEL_6;
-    hdma_tim1_ch2.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_tim1_ch2.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim1_ch2.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_tim1_ch2.Init.MemInc = DMA_MINC_ENABLE;
     hdma_tim1_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim1_ch2.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch2.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_tim1_ch2.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+    hdma_tim1_ch2.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_tim1_ch2.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     hdma_tim1_ch2.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
     hdma_tim1_ch2.Init.MemBurst = DMA_MBURST_SINGLE;
     hdma_tim1_ch2.Init.PeriphBurst = DMA_PBURST_SINGLE;
@@ -460,14 +460,14 @@ void STM32F4AudioDriver::mspInit(){
 
     hdma_tim1_ch3.Instance = DMA2_Stream6;
     hdma_tim1_ch3.Init.Channel = DMA_CHANNEL_6;
-    hdma_tim1_ch3.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_tim1_ch3.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim1_ch3.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_tim1_ch3.Init.MemInc = DMA_MINC_ENABLE;
     hdma_tim1_ch3.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch3.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim1_ch3.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch3.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_tim1_ch3.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+    hdma_tim1_ch3.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_tim1_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     hdma_tim1_ch3.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
     hdma_tim1_ch3.Init.MemBurst = DMA_MBURST_SINGLE;
     hdma_tim1_ch3.Init.PeriphBurst = DMA_PBURST_SINGLE;
@@ -477,14 +477,14 @@ void STM32F4AudioDriver::mspInit(){
 
     hdma_tim1_ch4_trig_com.Instance = DMA2_Stream4;
     hdma_tim1_ch4_trig_com.Init.Channel = DMA_CHANNEL_6;
-    hdma_tim1_ch4_trig_com.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_tim1_ch4_trig_com.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim1_ch4_trig_com.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_tim1_ch4_trig_com.Init.MemInc = DMA_MINC_ENABLE;
     hdma_tim1_ch4_trig_com.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
     hdma_tim1_ch4_trig_com.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_tim1_ch4_trig_com.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch4_trig_com.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_tim1_ch4_trig_com.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+    hdma_tim1_ch4_trig_com.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_tim1_ch4_trig_com.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
     hdma_tim1_ch4_trig_com.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
     hdma_tim1_ch4_trig_com.Init.MemBurst = DMA_MBURST_SINGLE;
     hdma_tim1_ch4_trig_com.Init.PeriphBurst = DMA_PBURST_SINGLE;
@@ -493,8 +493,8 @@ void STM32F4AudioDriver::mspInit(){
     /* Several peripheral DMA handle pointers point to the same DMA handle.
      Be aware that there is only one stream to perform all the requested DMAs. */
     __HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_CC4],hdma_tim1_ch4_trig_com);
-    __HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_TRIGGER],hdma_tim1_ch4_trig_com);
-    __HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_COMMUTATION],hdma_tim1_ch4_trig_com);
+    //__HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_TRIGGER],hdma_tim1_ch4_trig_com);
+    //__HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_COMMUTATION],hdma_tim1_ch4_trig_com);
 
 }
 

@@ -17,11 +17,9 @@ DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi2_rx;
 DMA_HandleTypeDef hdma_spi5_rx;
 
-// --- PWM and SDM Part ----
-DMA_HandleTypeDef hdma_tim1_ch1;
-DMA_HandleTypeDef hdma_tim1_ch2;
-DMA_HandleTypeDef hdma_tim1_ch3;
-DMA_HandleTypeDef hdma_tim1_ch4_trig_com;
+//PWM
+TIM_HandleTypeDef *pHtim1; //Link to the handle
+
 
 // -------------------- Arrays for the buffers ----------------
 /**
@@ -122,7 +120,7 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		
 		//TIM1
 		htim1.Instance = TIM1;
-		htim1.Init.Prescaler = 1;
+		htim1.Init.Prescaler = psc;
 		htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim1.Init.Period = period - 1;
 		htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -149,6 +147,9 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		sConfigOC1.OCIdleState = TIM_OCIDLESTATE_RESET;
 		sConfigOC1.OCNIdleState = TIM_OCNIDLESTATE_RESET;
 		
+		//Linking of the Handle (Should work)
+		pHtim1 = &htim1;
+		
 
 }
 
@@ -158,15 +159,14 @@ STM32F4AudioDriver::~STM32F4AudioDriver(){
 
 uint8_t STM32F4AudioDriver::configure(){
 	//------------------------
-	//--- --- DMA INIT --- ---
+	//--- --- DMA/INT INIT --- ---
 	//------------------------
 	/* DMA controller clock enable */
 	__DMA1_CLK_ENABLE();
 	__DMA2_CLK_ENABLE();
 
-	//HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 	
-		/* DMA interrupt init */
+	/* interrupt init */
 	//I2S
 	HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
@@ -176,21 +176,13 @@ uint8_t STM32F4AudioDriver::configure(){
 
 	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+	
+	
+	//TIM - UPDATE
+	HAL_NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
 
 
-	//PWM
-  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-	
-	HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
-	
-	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
-	
-	HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
-	
 	
 	//------------------------
 	//--- --- Msp INIT --- ---
@@ -239,17 +231,24 @@ uint8_t STM32F4AudioDriver::start(){
 	// --- Start I2S ---
 	
 	// --- Start PWM + SDM ---
-	if(HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_1, mPWMBuffer22, STM32F4AD_FPB) != HAL_OK)
+	
+	//Config and prestart channels;
+	if(TIM_PWM_Start_Channel(&htim1, TIM_CHANNEL_1) != LE_OK)
 		while(1);
 	
-	/*if(HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_2, mPWMBuffer32, STM32F4AD_FPB) != HAL_OK)
+	if(TIM_PWM_Start_Channel(&htim1, TIM_CHANNEL_2) != LE_OK)
 		while(1);
 	
-	if(HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_3, mPWMBuffer41, STM32F4AD_FPB) != HAL_OK)
+	if(TIM_PWM_Start_Channel(&htim1, TIM_CHANNEL_3) != LE_OK)
 		while(1);
 	
-	if(HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_4, mPWMBuffer52, STM32F4AD_FPB) != HAL_OK)
-		while(1);*/
+	if(TIM_PWM_Start_Channel(&htim1, TIM_CHANNEL_4) != LE_OK)
+		while(1);
+	
+	//Start the whole timer1 with interrupt on UPDATE
+	if(TIM_PWM_Start_IT_OnUpdate(&htim1) != LE_OK)
+		while(1);
+	
 	
 	
 	return LE_OK;
@@ -258,7 +257,7 @@ uint8_t STM32F4AudioDriver::start(){
 uint8_t STM32F4AudioDriver::stop(){
 	
 	//--- Start PWM + SDM ---
-	HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_1);
 	/*HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_3);
 	HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_4);*/
@@ -424,78 +423,7 @@ void STM32F4AudioDriver::mspInit(){
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 		
 		
-		hdma_tim1_ch1.Instance = DMA2_Stream1;
-    hdma_tim1_ch1.Init.Channel = DMA_CHANNEL_6;
-    hdma_tim1_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_tim1_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim1_ch1.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim1_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    hdma_tim1_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    hdma_tim1_ch1.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch1.Init.Priority = DMA_PRIORITY_HIGH;
-    hdma_tim1_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    hdma_tim1_ch1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
-    hdma_tim1_ch1.Init.MemBurst = DMA_MBURST_SINGLE;
-    hdma_tim1_ch1.Init.PeriphBurst = DMA_PBURST_SINGLE;
-    HAL_DMA_Init(&hdma_tim1_ch1);
-
-    __HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_CC1],hdma_tim1_ch1);
-
-    hdma_tim1_ch2.Instance = DMA2_Stream2;
-    hdma_tim1_ch2.Init.Channel = DMA_CHANNEL_6;
-    hdma_tim1_ch2.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_tim1_ch2.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim1_ch2.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim1_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    hdma_tim1_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    hdma_tim1_ch2.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch2.Init.Priority = DMA_PRIORITY_HIGH;
-    hdma_tim1_ch2.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    hdma_tim1_ch2.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
-    hdma_tim1_ch2.Init.MemBurst = DMA_MBURST_SINGLE;
-    hdma_tim1_ch2.Init.PeriphBurst = DMA_PBURST_SINGLE;
-    HAL_DMA_Init(&hdma_tim1_ch2);
-
-    __HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_CC2],hdma_tim1_ch2);
-
-    hdma_tim1_ch3.Instance = DMA2_Stream6;
-    hdma_tim1_ch3.Init.Channel = DMA_CHANNEL_6;
-    hdma_tim1_ch3.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_tim1_ch3.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim1_ch3.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim1_ch3.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    hdma_tim1_ch3.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    hdma_tim1_ch3.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch3.Init.Priority = DMA_PRIORITY_HIGH;
-    hdma_tim1_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    hdma_tim1_ch3.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
-    hdma_tim1_ch3.Init.MemBurst = DMA_MBURST_SINGLE;
-    hdma_tim1_ch3.Init.PeriphBurst = DMA_PBURST_SINGLE;
-    HAL_DMA_Init(&hdma_tim1_ch3);
-
-    __HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_CC3],hdma_tim1_ch3);
-
-    hdma_tim1_ch4_trig_com.Instance = DMA2_Stream4;
-    hdma_tim1_ch4_trig_com.Init.Channel = DMA_CHANNEL_6;
-    hdma_tim1_ch4_trig_com.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_tim1_ch4_trig_com.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_tim1_ch4_trig_com.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_tim1_ch4_trig_com.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-    hdma_tim1_ch4_trig_com.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-    hdma_tim1_ch4_trig_com.Init.Mode = DMA_CIRCULAR;
-    hdma_tim1_ch4_trig_com.Init.Priority = DMA_PRIORITY_HIGH;
-    hdma_tim1_ch4_trig_com.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    hdma_tim1_ch4_trig_com.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
-    hdma_tim1_ch4_trig_com.Init.MemBurst = DMA_MBURST_SINGLE;
-    hdma_tim1_ch4_trig_com.Init.PeriphBurst = DMA_PBURST_SINGLE;
-    HAL_DMA_Init(&hdma_tim1_ch4_trig_com);
-
-    /* Several peripheral DMA handle pointers point to the same DMA handle.
-     Be aware that there is only one stream to perform all the requested DMAs. */
-    __HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_CC4],hdma_tim1_ch4_trig_com);
-    //__HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_TRIGGER],hdma_tim1_ch4_trig_com);
-    //__HAL_LINKDMA(&htim1,hdma[TIM_DMA_ID_COMMUTATION],hdma_tim1_ch4_trig_com);
-
+		
 }
 
 
@@ -564,23 +492,46 @@ void STM32F4AudioDriver::mspDeInit(){
 		PA10    ------> TIM1_CH3 
 		PA11    ------> TIM1_CH4 
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8 |GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8 |GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11);		
 		
-		
-		//DeInit DMA
-		HAL_DMA_DeInit(htim1.hdma[TIM_DMA_ID_CC1]);
-    HAL_DMA_DeInit(htim1.hdma[TIM_DMA_ID_CC2]);
-    HAL_DMA_DeInit(htim1.hdma[TIM_DMA_ID_CC3]);
-    HAL_DMA_DeInit(htim1.hdma[TIM_DMA_ID_CC4]);
-    HAL_DMA_DeInit(htim1.hdma[TIM_DMA_ID_TRIGGER]);
-    HAL_DMA_DeInit(htim1.hdma[TIM_DMA_ID_COMMUTATION]);
-		
+    HAL_NVIC_DisableIRQ(TIM1_UP_TIM10_IRQn);
+
 }
 
 
 
 
 
+
+
+LEStatu STM32F4AudioDriver::TIM_PWM_Start_Channel(TIM_HandleTypeDef *htim, uint32_t Channel){
+	/* Enable the Capture compare channel */
+  TIM_CCxChannelCmd(htim->Instance, Channel, TIM_CCx_ENABLE);
+  
+  if(IS_TIM_ADVANCED_INSTANCE(htim->Instance) != RESET)  
+  {
+    /* Enable the main output */
+    __HAL_TIM_MOE_ENABLE(htim);
+  }
+  
+  /* Return function status */
+  return LE_OK;
+}
+
+LEStatu STM32F4AudioDriver::TIM_PWM_Start_IT_OnUpdate(TIM_HandleTypeDef *htim){
+	 /* Check the parameters */
+  assert_param(IS_TIM_CCX_INSTANCE(htim->Instance, Channel));
+   
+  /* Enable the TIM Capture/Compare 1 interrupt */
+  __HAL_TIM_ENABLE_IT(htim, TIM_IT_UPDATE);
+	
+	  /* Enable the Peripheral */
+  __HAL_TIM_ENABLE(htim);
+	
+	return LE_OK;
+  
+  
+}
 //---------------------------- Interruptions ------------------
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
@@ -606,36 +557,22 @@ void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
 	
 }
 
-void HAL_TIM_PWM_PulseHalfFinishedCallback(TIM_HandleTypeDef *htim){
-	audioDriver->acknOneDMA();
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	
-	//in the case of all PWM DMA are finished :
-	if(audioDriver->getDMAAck() == 0){
-		//change mOutBuffer : second half
-		audioDriver->setOutBufferAddr(0, &mSDM1Buffer[STM32F4AD_HALFFPB]);
-		audioDriver->setOutBufferAddr(1, &mSDM2Buffer[STM32F4AD_HALFFPB]);
-
-		//call the audio processing
-		audioDriver->process();
-		
-		//change pwm buffers : second half of the buffer
-		uint32_t i;
-		for(i=STM32F4AD_HALFFPB*SDM_OSR; i < STM32F4AD_FPB*SDM_OSR; i ++){
-			mPWMBuffer22[i] = dutycycle;
-			mPWMBuffer32[i] = dutycycle;
-			mPWMBuffer41[i] = dutycycle;
-			mPWMBuffer52[i] = dutycycle;
-		}
-		//call for the sdm processing
-		
-	}
-}
-
-void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
-	audioDriver->acknOneDMA();
+	//test de connard
+	htim->Instance->CCR1 = dutycycle >> 8;
+	htim->Instance->CCR2 = dutycycle >> 8;
+	htim->Instance->CCR3 = dutycycle >> 8;
+	htim->Instance->CCR4 = dutycycle >> 8;
+	
+	dutycycle++;
+	if(dutycycle == (period << 8)) dutycycle=0;
+	
+	//audioDriver->acknOneDMA();
 	
 	//in the case of all DMA are finished :
-	if(audioDriver->getDMAAck() == 0){
+	/*if(audioDriver->getDMAAck() == 0){
 		//change mOutBuffer : first half
 		audioDriver->setOutBufferAddr(0, mSDM1Buffer);
 		audioDriver->setOutBufferAddr(1, mSDM2Buffer);
@@ -656,5 +593,5 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim){
 		
 		//call for the sdm processing
 		
-	}
+	}*/
 }

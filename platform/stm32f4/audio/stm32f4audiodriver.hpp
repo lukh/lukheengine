@@ -102,6 +102,9 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 			\brief A low level de initialisation
 			*/
 		void mspDeInit();
+	
+		LEStatu TIM_PWM_Start_Channel(TIM_HandleTypeDef *htim, uint32_t Channel);
+		LEStatu TIM_PWM_Start_IT_OnUpdate(TIM_HandleTypeDef *htim);
 
 	protected:
 		/**

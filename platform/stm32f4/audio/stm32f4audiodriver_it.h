@@ -53,10 +53,7 @@ void DMA1_Stream3_IRQHandler(void);
 
 	 
 //PWM
-void DMA2_Stream2_IRQHandler(void);
-void DMA2_Stream6_IRQHandler(void);
-void DMA2_Stream1_IRQHandler(void);
-void DMA2_Stream4_IRQHandler(void);
+void TIM1_UP_TIM10_IRQHandler(void);
 
 #ifdef __cplusplus
 }

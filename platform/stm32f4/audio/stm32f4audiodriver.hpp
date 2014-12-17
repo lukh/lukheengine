@@ -104,11 +104,11 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 		void mspDeInit();
 	
 		/**
-			\brief A custom and uncomplete version of HAL_TIM_PWM_Start_IT.
-			This function configure one channel of the timer :
+			\brief A custom version of HAL_TIM_PWM_Start_IT.
+			This function configure two complementary channels of the timer :
 	
-			> Enable the Capture Compare Channel
-			> Enable the main Output
+			> Enable the Capture Compare Channel for x and xN
+			> Enable the main Output for x and xN
 			*/
 		LEStatus TIM_PWM_Start_Channel(TIM_HandleTypeDef *htim, uint32_t Channel);
 	
@@ -117,13 +117,13 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 			\brief A custom version of HAL_TIM_PWM_Start_IT
 			Instead of starting the timer on The Capture Compare Interruption, like in the HAL,
 			The Timer is started and configured for raising an interruption on each Update (end of Period...)
-			So the 4 channels will be update at the same time, and will be synchronized.
+			So the channels will be update at the same time, and will be synchronized.
 			*/
 		LEStatus TIM_PWM_Start_IT_OnUpdate(TIM_HandleTypeDef *htim);
 
 
 		/**
-		 * \brief A Custom version of HAL_TIM_PWM_Stop_IT to stop only one channel
+		 * \brief A Custom version of HAL_TIM_PWM_Stop_IT to stop only two complementary channels
 		 */
 		LEStatus TIM_PWM_Stop_Channel(TIM_HandleTypeDef *htim, uint32_t Channel);
 

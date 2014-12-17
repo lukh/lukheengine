@@ -139,15 +139,15 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		sBreakDeadTimeConfig1.OffStateRunMode = TIM_OSSR_DISABLE;
 		sBreakDeadTimeConfig1.OffStateIDLEMode = TIM_OSSI_DISABLE;
 		sBreakDeadTimeConfig1.LockLevel = TIM_LOCKLEVEL_OFF;
-		sBreakDeadTimeConfig1.DeadTime = 0;
+		sBreakDeadTimeConfig1.DeadTime = 0x50;
 		sBreakDeadTimeConfig1.BreakState = TIM_BREAK_DISABLE;
 		sBreakDeadTimeConfig1.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
 		sBreakDeadTimeConfig1.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
 		
 		sConfigOC1.OCMode = TIM_OCMODE_PWM1;
 		sConfigOC1.Pulse = 128;
-		sConfigOC1.OCPolarity = TIM_OCPOLARITY_HIGH;
-		sConfigOC1.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+		sConfigOC1.OCPolarity = TIM_OCPOLARITY_LOW;
+		sConfigOC1.OCNPolarity = TIM_OCNPOLARITY_LOW;
 		sConfigOC1.OCFastMode = TIM_OCFAST_DISABLE;
 		sConfigOC1.OCIdleState = TIM_OCIDLESTATE_RESET;
 		sConfigOC1.OCNIdleState = TIM_OCNIDLESTATE_RESET;
@@ -212,8 +212,8 @@ uint8_t STM32F4AudioDriver::configure(){
 	
 	HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_1);
 	HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_2);
-	HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_3);
-	HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_4);
+	//HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_3);
+	//HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC1, TIM_CHANNEL_4);
 
 	
 	
@@ -244,11 +244,11 @@ uint8_t STM32F4AudioDriver::start(){
 	if(TIM_PWM_Start_Channel(&htim1, TIM_CHANNEL_2) != LE_OK)
 		while(1);
 	
-	if(TIM_PWM_Start_Channel(&htim1, TIM_CHANNEL_3) != LE_OK)
+	/*if(TIM_PWM_Start_Channel(&htim1, TIM_CHANNEL_3) != LE_OK)
 		while(1);
 	
 	if(TIM_PWM_Start_Channel(&htim1, TIM_CHANNEL_4) != LE_OK)
-		while(1);
+		while(1);*/
 	
 	//Start the whole timer1 with interrupt on UPDATE
 	if(TIM_PWM_Start_IT_OnUpdate(&htim1) != LE_OK)
@@ -264,8 +264,8 @@ uint8_t STM32F4AudioDriver::stop(){
 	//--- Start PWM + SDM ---
 	TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_1);
 	TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_2);
-	TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_3);
-	TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_4);
+	//TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_3);
+	//TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_4);
 
 	TIM_PWM_Stop_IT_OnUpdate(&htim1);
 	
@@ -416,21 +416,39 @@ void STM32F4AudioDriver::mspInit(){
 		
 		__TIM1_CLK_ENABLE();
   
-    /**TIM1 GPIO Configuration    
-    PA8     ------> TIM1_CH1 
+    		/**TIM1 GPIO Configuration    
+    		PA8     ------> TIM1_CH1 
 		PA9     ------> TIM1_CH2 
 		PA10    ------> TIM1_CH3 
 		PA11    ------> TIM1_CH4 
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_8 |GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-		
-		
-		
+    		*/
+    	/*	GPIO_InitStruct.Pin = GPIO_PIN_8 |GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    		GPIO_InitStruct.Pull = GPIO_NOPULL;
+    		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+    		GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
+    		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);*/
+
+		/**TIM1 GPIO Configuration    
+    		PA8     ------> TIM1_CH1 
+		PA9     ------> TIM1_CH2
+		PB13    ------> TIM1_CH1N
+		PB14    ------> TIM1_CH2N 
+    		*/
+    		GPIO_InitStruct.Pin = GPIO_PIN_8 |GPIO_PIN_9;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    		GPIO_InitStruct.Pull = GPIO_NOPULL;
+    		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+    		GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
+    		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+		GPIO_InitStruct.Pin = GPIO_PIN_13 |GPIO_PIN_14;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    		GPIO_InitStruct.Pull = GPIO_NOPULL;
+    		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+    		GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
+    		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+			
 }
 
 
@@ -493,15 +511,16 @@ void STM32F4AudioDriver::mspDeInit(){
 
 		__TIM1_CLK_DISABLE();
   
-    /**TIM1 GPIO Configuration   
+    		/**TIM1 GPIO Configuration   
 		PA8     ------> TIM1_CH1 
 		PA9     ------> TIM1_CH2 
 		PA10    ------> TIM1_CH3 
 		PA11    ------> TIM1_CH4 
-    */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8 |GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11);		
+    		*/
+    		HAL_GPIO_DeInit(GPIOA, GPIO_PIN_8 |GPIO_PIN_9);		
+    		HAL_GPIO_DeInit(GPIOB, GPIO_PIN_13 | GPIO_PIN_14);
 		
-    HAL_NVIC_DisableIRQ(TIM1_UP_TIM10_IRQn);
+    		HAL_NVIC_DisableIRQ(TIM1_UP_TIM10_IRQn);
 
 }
 
@@ -512,22 +531,49 @@ void STM32F4AudioDriver::mspDeInit(){
 
 
 LEStatus STM32F4AudioDriver::TIM_PWM_Start_Channel(TIM_HandleTypeDef *htim, uint32_t Channel){
-	/* Enable the Capture compare channel */
-  	TIM_CCxChannelCmd(htim->Instance, Channel, TIM_CCx_ENABLE);
+	 uint32_t tmp = 0;
+
+	/* check the parameters */
+	assert_param(IS_TIM_ADVANCED_INSTANCE(htim->Instance));
+	assert_param(IS_TIM_CHANNELS(Channel));
+	assert_param(IS_TIM_CCXN_INSTANCE(htim->Instance, Channel));
+
+	/* Enable the Capture compare channels : x and xN */
+  	/*TIM_CCxChannelCmd(htim->Instance, Channel, TIM_CCx_ENABLE);
+	TIM_CCxNChannelCmd(htim->Instance, Channel, TIM_CCxN_ENABLE);*/
+
+	//------------------------------------------------------------
+	//---   Enables the TIM Capture Compare Channel x
+  	tmp = TIM_CCER_CC1E << Channel;
+
+  	/* Reset the CCxE Bit */
+	htim->Instance->CCER &= ~tmp;
+
+  	/* Set or reset the CCxE Bit */ 
+  	htim->Instance->CCER |= (uint32_t)(TIM_CCx_ENABLE << Channel);
+
+
+	//------------------------------------------------------------
+	//---   Enables the TIM Capture Compare Channel xN
+	tmp = TIM_CCER_CC1NE << Channel;
+
+  	/* Reset the CCxNE Bit */
+  	htim->Instance->CCER &= ~tmp;
+
+  	/* Set or reset the CCxNE Bit */ 
+  	htim->Instance->CCER |= (uint32_t)(TIM_CCxN_ENABLE << Channel);
   
-  	if(IS_TIM_ADVANCED_INSTANCE(htim->Instance) != RESET)  
-  	{
-    	/* Enable the main output */
-    	__HAL_TIM_MOE_ENABLE(htim);
-  	}
-  
-  	/* Return function status */
-  	return LE_OK;
+
+	//------------------------------------------------------------
+   	/* Enable the main output */
+ 	__HAL_TIM_MOE_ENABLE(htim);
+
+	return LE_OK;
 }
 
 LEStatus STM32F4AudioDriver::TIM_PWM_Start_IT_OnUpdate(TIM_HandleTypeDef *htim){
 	 /* Check the parameters */
-  	assert_param(IS_TIM_CCX_INSTANCE(htim->Instance, Channel));
+  	assert_param(IS_TIM_INSTANCE(htim->Instance));
    
  	/* Enable the TIM Update interrupt */
   	__HAL_TIM_ENABLE_IT(htim, TIM_IT_UPDATE);
@@ -544,12 +590,37 @@ LEStatus STM32F4AudioDriver::TIM_PWM_Start_IT_OnUpdate(TIM_HandleTypeDef *htim){
 
 
 LEStatus STM32F4AudioDriver::TIM_PWM_Stop_Channel(TIM_HandleTypeDef *htim, uint32_t Channel){
+	 uint32_t tmp = 0;
+	
 	/* Check the parameters */
-  	assert_param(IS_TIM_CCX_INSTANCE(htim->Instance, Channel));
+	assert_param(IS_TIM_ADVANCED_INSTANCE(htim->Instance));
+	assert_param(IS_TIM_CHANNELS(Channel));
+	assert_param(IS_TIM_CCXN_INSTANCE(htim->Instance, Channel));
 
 	/* Disable the Capture compare channel */
-	TIM_CCxChannelCmd(htim->Instance, Channel, TIM_CCx_DISABLE);
+	//------------------------------------------------------------
+	//---   Disable the TIM Capture Compare Channel x
+  	tmp = TIM_CCER_CC1E << Channel;
+
+  	/* Reset the CCxE Bit */
+	htim->Instance->CCER &= ~tmp;
+
+  	/* Set or reset the CCxE Bit */ 
+  	htim->Instance->CCER |= (uint32_t)(TIM_CCx_DISABLE << Channel);
+
+
+	//------------------------------------------------------------
+	//---   Disable the TIM Capture Compare Channel xN
+	tmp = TIM_CCER_CC1NE << Channel;
+
+  	/* Reset the CCxNE Bit */
+  	htim->Instance->CCER &= ~tmp;
+
+  	/* Set or reset the CCxNE Bit */ 
+  	htim->Instance->CCER |= (uint32_t)(TIM_CCxN_DISABLE << Channel);
   
+
+	//------------------------------------------------------------
 	if(IS_TIM_ADVANCED_INSTANCE(htim->Instance) != RESET)  
 	{
 		/* Disable the Main Ouput */
@@ -663,10 +734,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	*/
 	
 	//test de connard
-	htim->Instance->CCR1 = dutycycle >> 8;
-	htim->Instance->CCR2 = dutycycle >> 8;
-	htim->Instance->CCR3 = dutycycle >> 8;
-	htim->Instance->CCR4 = dutycycle >> 8;
+	htim->Instance->CCR1 = period - (dutycycle >> 8);
+	htim->Instance->CCR2 = period - (dutycycle >> 8);
+	htim->Instance->CCR3 = period - (dutycycle >> 8);
+	htim->Instance->CCR4 = period - (dutycycle >> 8);
 	
 	dutycycle++;
 	if(dutycycle == (period << 8)) dutycycle=0;

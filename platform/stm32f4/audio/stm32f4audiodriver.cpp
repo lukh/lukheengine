@@ -1,5 +1,10 @@
 #include "stm32f4audiodriver.hpp"
 
+/**
+  \addtogroup AudioDriver
+  @{
+  */
+
 extern STM32F4AudioDriver *audioDriver;
 
 /**
@@ -18,7 +23,7 @@ DMA_HandleTypeDef hdma_spi2_rx;
 DMA_HandleTypeDef hdma_spi5_rx;
 
 //PWM
-TIM_HandleTypeDef *pHtim1; //Link to the handle
+TIM_HandleTypeDef *pHtim1; //Link to the handle for the interruption
 
 
 // -------------------- Arrays for the buffers ----------------
@@ -304,7 +309,7 @@ void STM32F4AudioDriver::mspInit(){
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 		/* Peripheral DMA init*/
-		/*hdma_spi1_rx.Instance = DMA2_Stream0;
+		hdma_spi1_rx.Instance = DMA2_Stream0;
 		hdma_spi1_rx.Init.Channel = DMA_CHANNEL_3;
 		hdma_spi1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 		hdma_spi1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -319,7 +324,7 @@ void STM32F4AudioDriver::mspInit(){
 		hdma_spi1_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;		
 		HAL_DMA_Init(&hdma_spi1_rx);
 
-		__HAL_LINKDMA(&hi2s1,hdmarx,hdma_spi1_rx);*/
+		__HAL_LINKDMA(&hi2s1,hdmarx,hdma_spi1_rx);
 
 
 
@@ -347,7 +352,7 @@ void STM32F4AudioDriver::mspInit(){
 
 		/* Peripheral DMA init*/
 
-		/*hdma_spi2_rx.Instance = DMA1_Stream3;
+		hdma_spi2_rx.Instance = DMA1_Stream3;
 		hdma_spi2_rx.Init.Channel = DMA_CHANNEL_0;
 		hdma_spi2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 		hdma_spi2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -362,7 +367,7 @@ void STM32F4AudioDriver::mspInit(){
 		hdma_spi2_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
 		HAL_DMA_Init(&hdma_spi2_rx);
 
-		__HAL_LINKDMA(&hi2s2,hdmarx,hdma_spi2_rx);*/
+		__HAL_LINKDMA(&hi2s2,hdmarx,hdma_spi2_rx);
 
 
 
@@ -391,7 +396,7 @@ void STM32F4AudioDriver::mspInit(){
 
 		/* Peripheral DMA init*/
 
-		/*hdma_spi5_rx.Instance = DMA2_Stream3;
+		hdma_spi5_rx.Instance = DMA2_Stream3;
 		hdma_spi5_rx.Init.Channel = DMA_CHANNEL_2;
 		hdma_spi5_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 		hdma_spi5_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -406,7 +411,7 @@ void STM32F4AudioDriver::mspInit(){
 		hdma_spi5_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
 		HAL_DMA_Init(&hdma_spi5_rx);
 
-		__HAL_LINKDMA(&hi2s5,hdmarx,hdma_spi5_rx);*/
+		__HAL_LINKDMA(&hi2s5,hdmarx,hdma_spi5_rx);
 
 
 
@@ -415,19 +420,6 @@ void STM32F4AudioDriver::mspInit(){
 		//**************************************************
 		
 		__TIM1_CLK_ENABLE();
-  
-    		/**TIM1 GPIO Configuration    
-    		PA8     ------> TIM1_CH1 
-		PA9     ------> TIM1_CH2 
-		PA10    ------> TIM1_CH3 
-		PA11    ------> TIM1_CH4 
-    		*/
-    	/*	GPIO_InitStruct.Pin = GPIO_PIN_8 |GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11;
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    		GPIO_InitStruct.Pull = GPIO_NOPULL;
-    		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    		GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
-    		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);*/
 
 		/**TIM1 GPIO Configuration    
     		PA8     ------> TIM1_CH1 
@@ -660,6 +652,15 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s){
 	
 }
 
+
+
+/**
+ * \brief HalfComplete I2S Callback
+ * This function handle a half complete buffer for each i2s
+ * Should be call 3 times
+ * It handle different cases and switch buffers if needed
+ * It also calls processing functions.
+ */
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
 	audioDriver->acknOneDMA();
 	
@@ -688,6 +689,14 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
 	
 }
 
+
+/**
+ * \brief Complete I2S Callback
+ * This function handle a complete buffer for each i2s
+ * Should be call 3 times
+ * It handle different cases and switch buffers if needed
+ * It also calls processing functions.
+ */
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 	audioDriver->acknOneDMA();
 	
@@ -714,7 +723,6 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 		if(dutycycle == (period)) dutycycle=0;
 		
 		//call for the sdm processing
-		
 	}
 }
 
@@ -725,6 +733,12 @@ void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
 }
 
 
+
+/**
+ * \brief Timer Period Elapsed Callback
+ * Update the PWM dutycycles after each period
+ * Handle the cases and flag for new processing if needed
+ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	
 	/*
@@ -744,3 +758,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	
 
 }
+
+
+
+/**
+  @}
+  */
+
+

@@ -51,7 +51,7 @@ typedef enum
 	LE_ERROR = 0x01,
 	LE_BUSY = 0x02,
 	LE_TIMEOUT = 0x03
-}LEStatu;
+}LEStatus;
 
 
 #endif /* CONST_HPP_ */

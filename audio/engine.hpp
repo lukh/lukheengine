@@ -24,7 +24,6 @@ class AbstractAudioDriver;
 
 /**
   \brief   The core of the audio processing
-  \verbatim
   It handles and ask components for processing, depending on their channels, and order.
   It controlled by the AudioDriver, through AbstractAudioDriver::process()
 
@@ -40,7 +39,6 @@ class AbstractAudioDriver;
 
   > call the AudioComponent::process of the component, with the buffers given.
 
-  \endverbatim
  */
 class Engine{
 	public:

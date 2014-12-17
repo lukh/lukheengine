@@ -103,8 +103,34 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 			*/
 		void mspDeInit();
 	
-		LEStatu TIM_PWM_Start_Channel(TIM_HandleTypeDef *htim, uint32_t Channel);
-		LEStatu TIM_PWM_Start_IT_OnUpdate(TIM_HandleTypeDef *htim);
+		/**
+			\brief A custom and uncomplete version of HAL_TIM_PWM_Start_IT.
+			This function configure one channel of the timer :
+	
+			> Enable the Capture Compare Channel
+			> Enable the main Output
+			*/
+		LEStatus TIM_PWM_Start_Channel(TIM_HandleTypeDef *htim, uint32_t Channel);
+	
+	
+		/**
+			\brief A custom version of HAL_TIM_PWM_Start_IT
+			Instead of starting the timer on The Capture Compare Interruption, like in the HAL,
+			The Timer is started and configured for raising an interruption on each Update (end of Period...)
+			So the 4 channels will be update at the same time, and will be synchronized.
+			*/
+		LEStatus TIM_PWM_Start_IT_OnUpdate(TIM_HandleTypeDef *htim);
+
+
+		/**
+		 * \brief A Custom version of HAL_TIM_PWM_Stop_IT to stop only one channel
+		 */
+		LEStatus TIM_PWM_Stop_Channel(TIM_HandleTypeDef *htim, uint32_t Channel);
+
+		/**
+		 * \brief A Custom version of HAL_TIM_PWM_Stop_IT to stop stop the IT on UPDATE
+		 */
+		LEStatus TIM_PWM_Stop_IT_OnUpdate(TIM_HandleTypeDef *htim);
 
 	protected:
 		/**
@@ -123,9 +149,15 @@ class STM32F4AudioDriver : public AbstractAudioDriver{
 		
 		// ------------------ PWM and SDM Part -----------
 		/**
-			* Sigma Delta Modulator and Their buffers
+			\brief Sigma Delta Modulators
 			*/
 		SigmaDeltaModulator *mSdm1, *mSdm2;
+		
+		/**
+			\brief Pointers on the effective buffers
+			Should be Updated during interruptions
+			*/
+		SDMOutputType *mPWMBuffers[2*AUDIOCONF_MAX_OUTPUT_CHANNELS];
 	
 		//ST Structures
 		TIM_HandleTypeDef htim1;

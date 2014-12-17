@@ -28,20 +28,20 @@ TIM_HandleTypeDef *pHtim1; //Link to the handle
 	* The "*2" is because the drivers will used the buffers in Circular mode : 
 	* the 2 half parts of the buffers works in parallel : one is filled, the other one is used
 	*/
-static __attribute__((zero_init))Sample mI2S1InBuffer[STM32F4AD_FPB*2];
-static __attribute__((zero_init))Sample mI2S2InBuffer[STM32F4AD_FPB*2];
-static __attribute__((zero_init))Sample mI2S5InBuffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample I2S1InBuffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample I2S2InBuffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample I2S5InBuffer[STM32F4AD_FPB*2];
 
-static __attribute__((zero_init))Sample mSDM1Buffer[STM32F4AD_FPB*2];
-static __attribute__((zero_init))Sample mSDM2Buffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample SDM1Buffer[STM32F4AD_FPB*2];
+static __attribute__((zero_init))Sample SDM2Buffer[STM32F4AD_FPB*2];
 
 /**
  * Buffers for the SDM and PWMs
  */
-static __attribute__((zero_init))SDMOutputType mPWMBuffer22[STM32F4AD_FPB*SDM_OSR];
-static __attribute__((zero_init))SDMOutputType mPWMBuffer32[STM32F4AD_FPB*SDM_OSR];
-static __attribute__((zero_init))SDMOutputType mPWMBuffer41[STM32F4AD_FPB*SDM_OSR];
-static __attribute__((zero_init))SDMOutputType mPWMBuffer52[STM32F4AD_FPB*SDM_OSR];
+static __attribute__((zero_init))SDMOutputType PWMBuffer1L[STM32F4AD_FPB*SDM_OSR];
+static __attribute__((zero_init))SDMOutputType PWMBuffer1H[STM32F4AD_FPB*SDM_OSR];
+static __attribute__((zero_init))SDMOutputType PWMBuffer2L[STM32F4AD_FPB*SDM_OSR];
+static __attribute__((zero_init))SDMOutputType PWMBuffer2H[STM32F4AD_FPB*SDM_OSR];
 
 
 // -------------------------------- Audio Driver ------------
@@ -59,12 +59,17 @@ STM32F4AudioDriver::STM32F4AudioDriver(SampleRate sr, uint32_t fpb) :
 		setNumStereoIn(3);
 		setNumStereoOut(2);
 
-		mInBuffers[0] = mI2S1InBuffer;
-		mInBuffers[1] = mI2S1InBuffer;
-		mInBuffers[2] = mI2S1InBuffer;
+		mInBuffers[0] = I2S1InBuffer;
+		mInBuffers[1] = I2S1InBuffer;
+		mInBuffers[2] = I2S1InBuffer;
 
-		mOutBuffers[0] = mSDM1Buffer;
-		mOutBuffers[1] = mSDM2Buffer;
+		mOutBuffers[0] = SDM1Buffer;
+		mOutBuffers[1] = SDM2Buffer;
+	
+		mPWMBuffers[0] = PWMBuffer1L;
+		mPWMBuffers[1] = PWMBuffer1H;
+		mPWMBuffers[2] = PWMBuffer2L;
+		mPWMBuffers[3] = PWMBuffer2H;
 
 		//mSdm1, 2 = new....
 
@@ -257,10 +262,12 @@ uint8_t STM32F4AudioDriver::start(){
 uint8_t STM32F4AudioDriver::stop(){
 	
 	//--- Start PWM + SDM ---
-	HAL_TIM_PWM_Stop_IT(&htim1, TIM_CHANNEL_1);
-	/*HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Stop_DMA(&htim1, TIM_CHANNEL_4);*/
+	TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_1);
+	TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_2);
+	TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_3);
+	TIM_PWM_Stop_Channel(&htim1, TIM_CHANNEL_4);
+
+	TIM_PWM_Stop_IT_OnUpdate(&htim1);
 	
 	return LE_OK;
 }
@@ -504,34 +511,74 @@ void STM32F4AudioDriver::mspDeInit(){
 
 
 
-LEStatu STM32F4AudioDriver::TIM_PWM_Start_Channel(TIM_HandleTypeDef *htim, uint32_t Channel){
+LEStatus STM32F4AudioDriver::TIM_PWM_Start_Channel(TIM_HandleTypeDef *htim, uint32_t Channel){
 	/* Enable the Capture compare channel */
-  TIM_CCxChannelCmd(htim->Instance, Channel, TIM_CCx_ENABLE);
+  	TIM_CCxChannelCmd(htim->Instance, Channel, TIM_CCx_ENABLE);
   
-  if(IS_TIM_ADVANCED_INSTANCE(htim->Instance) != RESET)  
-  {
-    /* Enable the main output */
-    __HAL_TIM_MOE_ENABLE(htim);
-  }
+  	if(IS_TIM_ADVANCED_INSTANCE(htim->Instance) != RESET)  
+  	{
+    	/* Enable the main output */
+    	__HAL_TIM_MOE_ENABLE(htim);
+  	}
   
-  /* Return function status */
-  return LE_OK;
+  	/* Return function status */
+  	return LE_OK;
 }
 
-LEStatu STM32F4AudioDriver::TIM_PWM_Start_IT_OnUpdate(TIM_HandleTypeDef *htim){
+LEStatus STM32F4AudioDriver::TIM_PWM_Start_IT_OnUpdate(TIM_HandleTypeDef *htim){
 	 /* Check the parameters */
-  assert_param(IS_TIM_CCX_INSTANCE(htim->Instance, Channel));
+  	assert_param(IS_TIM_CCX_INSTANCE(htim->Instance, Channel));
    
-  /* Enable the TIM Capture/Compare 1 interrupt */
-  __HAL_TIM_ENABLE_IT(htim, TIM_IT_UPDATE);
+ 	/* Enable the TIM Update interrupt */
+  	__HAL_TIM_ENABLE_IT(htim, TIM_IT_UPDATE);
 	
 	  /* Enable the Peripheral */
-  __HAL_TIM_ENABLE(htim);
+  	__HAL_TIM_ENABLE(htim);
 	
-	return LE_OK;
-  
-  
+	return LE_OK;  
 }
+
+
+
+
+
+
+LEStatus STM32F4AudioDriver::TIM_PWM_Stop_Channel(TIM_HandleTypeDef *htim, uint32_t Channel){
+	/* Check the parameters */
+  	assert_param(IS_TIM_CCX_INSTANCE(htim->Instance, Channel));
+
+	/* Disable the Capture compare channel */
+	TIM_CCxChannelCmd(htim->Instance, Channel, TIM_CCx_DISABLE);
+  
+	if(IS_TIM_ADVANCED_INSTANCE(htim->Instance) != RESET)  
+	{
+		/* Disable the Main Ouput */
+		__HAL_TIM_MOE_DISABLE(htim);
+	}
+  
+	/* Disable the Peripheral */
+	__HAL_TIM_DISABLE(htim);
+  
+	/* Return function status */
+	return LE_OK;
+}
+
+
+LEStatus STM32F4AudioDriver::TIM_PWM_Stop_IT_OnUpdate(TIM_HandleTypeDef *htim){
+	/* Check the parameters */
+	assert_param(IS_TIM_INSTANCE(htim->Instance));
+	
+	/* Disable Interruption */
+	__HAL_TIM_DISABLE_IT(htim, TIM_IT_UPDATE);
+
+	/* Disable Peripheral */
+	__HAL_TIM_DISABLE(htim);
+
+	return LE_OK;
+}
+
+
+
 //---------------------------- Interruptions ------------------
 
 void HAL_I2S_TxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
@@ -543,12 +590,61 @@ void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s){
 }
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s){
+	audioDriver->acknOneDMA();
 	
+	//in the case of all DMA are finished :
+	if(audioDriver->getDMAAck() == 0){
+		//change mInBuffer
+		
+		//change mOutBuffer : second half
+		audioDriver->setOutBufferAddr(0, SDM1Buffer + STM32F4AD_FPB);
+		audioDriver->setOutBufferAddr(1, SDM2Buffer + STM32F4AD_FPB);
+
+		//call the audio processing
+		audioDriver->process();
+		
+		//for testing... change pwm buffers : second half of the buffer
+		uint32_t i;
+		for(i=STM32F4AD_HALFFPB*SDM_OSR; i < STM32F4AD_FPB*SDM_OSR; i ++){
+			PWMBuffer1L[i] = dutycycle;
+			PWMBuffer1H[i] = dutycycle;
+			PWMBuffer2L[i] = dutycycle;
+			PWMBuffer2H[i] = dutycycle;
+		}
+		//call for the sdm processing
+		
+	}
 	
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
+	audioDriver->acknOneDMA();
 	
+	//in the case of all DMA are finished :
+	if(audioDriver->getDMAAck() == 0){
+		//change mInBuffer
+		
+		//change mOutBuffer : first half
+		audioDriver->setOutBufferAddr(0, SDM1Buffer);
+		audioDriver->setOutBufferAddr(1, SDM2Buffer);
+
+		//call the audio processing
+		audioDriver->process();
+		
+		//for testing... change pwm buffers : first half of the buffer
+		uint32_t i;
+		for(i=0; i < STM32F4AD_HALFFPB*SDM_OSR; i ++){
+			PWMBuffer1L[i] = dutycycle;
+			PWMBuffer1H[i] = dutycycle;
+			PWMBuffer2L[i] = dutycycle;
+			PWMBuffer2H[i] = dutycycle;
+		}
+		dutycycle++;
+		if(dutycycle == (period)) dutycycle=0;
+		
+		//call for the sdm processing
+		
+	}
 }
 
 
@@ -560,6 +656,12 @@ void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	
+	/*
+		So... let 's think.
+		
+	
+	*/
+	
 	//test de connard
 	htim->Instance->CCR1 = dutycycle >> 8;
 	htim->Instance->CCR2 = dutycycle >> 8;
@@ -569,29 +671,5 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	dutycycle++;
 	if(dutycycle == (period << 8)) dutycycle=0;
 	
-	//audioDriver->acknOneDMA();
-	
-	//in the case of all DMA are finished :
-	/*if(audioDriver->getDMAAck() == 0){
-		//change mOutBuffer : first half
-		audioDriver->setOutBufferAddr(0, mSDM1Buffer);
-		audioDriver->setOutBufferAddr(1, mSDM2Buffer);
 
-		//call the audio processing
-		audioDriver->process();
-		
-		//change pwm buffers : first half of the buffer
-		uint32_t i;
-		for(i=0; i < STM32F4AD_HALFFPB*SDM_OSR; i ++){
-			mPWMBuffer22[i] = dutycycle;
-			mPWMBuffer32[i] = dutycycle;
-			mPWMBuffer41[i] = dutycycle;
-			mPWMBuffer52[i] = dutycycle;
-		}
-		dutycycle++;
-		if(dutycycle == (period)) dutycycle=0;
-		
-		//call for the sdm processing
-		
-	}*/
 }

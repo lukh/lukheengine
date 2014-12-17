@@ -55,7 +55,6 @@ enum AudioDriverState{
 
 /**
   * \brief   AbstractAudioDriver is the abstraction of the driver, to be able to load the code on different targets, such computers or embedded
-  \verbatim
   In order to load LuKHeEngine on a specific target, it is mandatory to create his own driver, and implement virtual methods :
 
   configure() : init peripherals, memory needed (buffers) depending on the target
@@ -66,7 +65,6 @@ enum AudioDriverState{
   The user has to add methods depending on the target, like a callback.
   This callback should access to the depending hardware buffer(s), reorganized if needed and copy samples in the mIn/OutBuffers
   Then, it has to call mDriver->process() to start signal processing.
-  \endverbatim
  */
 class AbstractAudioDriver{
 	public:
@@ -246,8 +244,14 @@ class AbstractAudioDriver{
 
         Engine *mEngine;
 
+				/**
+					\brief Pointers on the in buffers define in the implementation
+					*/
         Sample *mInBuffers[AUDIOCONF_MAX_INPUT_CHANNELS];
 
+				/**
+					\brief Pointers on the out buffers define in the implementation
+					*/
         Sample *mOutBuffers[AUDIOCONF_MAX_OUTPUT_CHANNELS];
 };
 

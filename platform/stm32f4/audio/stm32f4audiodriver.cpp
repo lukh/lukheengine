@@ -185,7 +185,7 @@ uint8_t STM32F4AudioDriver::configure(){
 	
 	//TIM - UPDATE
 	HAL_NVIC_SetPriority(TIM1_UP_TIM10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
+  	HAL_NVIC_EnableIRQ(TIM1_UP_TIM10_IRQn);
 
 
 	

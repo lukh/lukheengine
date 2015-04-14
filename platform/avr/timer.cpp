@@ -71,7 +71,8 @@ Timer8b::~Timer8b(){
 }
 
 void Timer8b::lowLevelInit(){
-	//nothing to do ?
+	//turn on
+	PRR &= ~(1 << PRTIM0);
 }
 
 void Timer8b::configure(uint8_t waveformGenerationMode, uint8_t compareMatchOutputsMode, uint8_t interruptsEn, uint8_t outputCompareRegA, uint8_t outputCompareRegB)

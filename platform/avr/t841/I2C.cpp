@@ -31,7 +31,8 @@ void I2c::lowLevelInit(){
 
 void I2c::configure(uint8_t addr){
 	//set the adress
-	TWSA = addr;
+	TWSA = addr << 1;
+	TWSD = 0xFF;
 	
 	//set register TWSCRA
 	TWSCRA = 
@@ -122,7 +123,7 @@ uint8_t I2c::getDataFromTransceiver(uint8_t *msg, uint8_t msgSize){
 	
 	while(isBusy()){}
 		
-	if(mStatus & I2C_LASTTRANSOK){
+	if(mStatus & I2C_RXDATAINBUF){
 		for(i=0;i<mMsgSize;i++)
 			msg[i] = mMsg[i];
 			
@@ -136,108 +137,103 @@ uint8_t I2c::getDataFromTransceiver(uint8_t *msg, uint8_t msgSize){
 void I2c::callback(){
 	static uint8_t bufPtr;
 	
-	switch(TWSSRA){
-		//---------------------------
-		//--- address received ---
-		//---------------------------
-		
-		//address packet accepted, SRX
-		case I2C_SRX_ADR_ACK:
-			mStatus |= I2C_RXDATAINBUF;
-		//address packet accepted, STX
-		case I2C_STX_ADR_ACK:
-			bufPtr = 0;
-			//ack interrupts flag, set the ack action
-			TWSCRB = I2C_CMD_CONTINUE | I2C_ACK_ACTION_SENDACK | I2C_HIGH_NOISE_DIS;		
-			//i2c is busy now...
-			mBusy = I2C_BUSY;	
-			break;
-
-		
-		//stop
-		case I2C_SRX_STOP_RESTART:
-		case I2C_STX_STOP_RESTART:
-			//ack interrupts flag, set the ack action
-			TWSCRB = I2C_CMD_NOACTION | I2C_ACK_ACTION_SENDACK | I2C_HIGH_NOISE_DIS;
-			//i2c is ready now...
-			mBusy = I2C_READY;
-			break;
-	
-		//---------------------------
-		//---  data received---
-		//---------------------------
-		case I2C_SRX_DATA_ACK:
-		case I2C_SRX_DATA_NACK: //here we don't care about the master ACK/NACK
-			mMsg[bufPtr++] = TWSD;
-			mStatus |= I2C_LASTTRANSOK;
-			
-			//master has transmitted all the expected data : slave send NACK
-			if(bufPtr == mMsgSize){
-				TWSCRB = I2C_CMD_COMPLETE | I2C_ACK_ACTION_SENDNACK | I2C_HIGH_NOISE_DIS;
-			}
-			
-			//master still has to transmit data : slave send ACK
-			else{
-				TWSCRB = I2C_CMD_CONTINUE | I2C_ACK_ACTION_SENDACK | I2C_HIGH_NOISE_DIS;
-			}
-			
-			//mBusy = I2C_BUSY;
-			break;
-	
-		//---------------------------
-		//--- data transmitted ---
-		//---------------------------
-		case I2C_STX_DATA_ACK:
-			TWSD = mMsg[bufPtr++];
-		
-			//ack interrupts flag, set the ack action
-			TWSCRB = I2C_CMD_CONTINUE | I2C_HIGH_NOISE_DIS;
-			break;
-		
-		case I2C_STX_DATA_NACK:
-			//ack interrupts flag, set the ack action
-			TWSCRB = I2C_CMD_COMPLETE | I2C_HIGH_NOISE_DIS;
-			
-			//all the expected byte have been transmitted
-			if(bufPtr == mMsgSize){
-				mStatus |= I2C_LASTTRANSOK;
-			}
-			
-			else{
-				//handle error code ?
+	switch(TWSSRA & 0xC0){
+		case I2C_ADDR_STOP_FLAG:
+			//bus collision
+			if(TWSSRA & I2C_BUS_COLLISION){
+				//clear flags;
+				TWSSRA = TWSSRA;
+				
+				//update status
+				mBusy = I2C_READY;
 				mError = TWSSRA;
+				
+				//initialize the buffer pointer
+				bufPtr = 0;
+				
+				//Wait for any start condition
+				TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_COMPLETE;
+			}
+		
+			else{
+					//adress
+					if(TWSSRA & I2C_ADDR_STOP_FLAG){						
+						//update status
+						mBusy = I2C_BUSY;
+					
+						//initialize the buffer pointer
+						bufPtr = 0;
+					
+						//Execute ACK and then receive next byte or set TWDIF to send the data
+						TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_CONTINUE;
+					}
+				
+					//stop
+					else{
+						mBusy = I2C_READY;
+					
+						//Wait for any start condition
+						TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_COMPLETE;
+					}
+				}
+				break;
+	
+
+		case I2C_DATA_FLAG:
+			//---  data transmitted   ---
+			if(TWSSRA & I2C_MASTER_READ_FLAG){
+				//master ask for the and of the transmission
+				if(TWSSRA & I2C_MASTER_NACK_FLAG){
+					//transmission finished, but stop is not received yet so...
+					//mBusy = I2C_READY;
+					
+					//do we have transmit everything ? (careful in the case of circular buffering, it doesn't work)
+					if(bufPtr == mMsgSize)
+						mStatus = I2C_LASTTRANSOK;
+						
+					//error case...
+					else
+						mError = TWSSRA;
+					
+					//since, we still have to finish it	(and clear interruptions, BTW)
+					TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_COMPLETE;
+				}
+				
+				else{
+					TWSD = mMsg[bufPtr++];
+				
+					if(bufPtr == mMsgSize || bufPtr == I2C_BUFFSIZE)
+						bufPtr = 0; //come back to the begin of the pointer
+					
+					//clear interruptions and ask for a NO ACTION (everything is done when loading data to TWSD
+					TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_CONTINUE;
+				}
 			}
 			
-			//mBusy = I2C_READY;
-			break;
-		
-		
-		//--------------------------------
-		//--- collision + default case and bus error ---
-		//--------------------------------
-		default:
-			//handle error msg
-			mError = TWSSRA;
-			
-			//clear flags
-			TWSCRB = I2C_CMD_NOACTION | I2C_ACK_ACTION_SENDACK | I2C_HIGH_NOISE_DIS;	
-			
-			//---------------------------
-			//--- bus error ---
-			//---------------------------
-			if(TWSSRA & I2C_S_BUS_ERROR)
-				TWSSRA = I2C_S_BUS_ERROR;
-			
-			mBusy = I2C_READY;
-			break;
-			
-		//collision
-		/*Bit 3 – TWC: TWI Collision
-		This bit is set when the slave was not able to transfer a high data bit or a NACK bit. When a collision is detected, the
-		slave will commence its normal operation, and disable data and acknowledge output. No low values are shifted out onto
-		the SDA line.
-		This bit is cleared by writing a one to it. The bit is also cleared automatically when a START or Repeated START
-		condition is detected.*/
+			// --- data received ---
+			else{
+				//get the new data
+				mMsg[bufPtr++] = TWSD;
+				
+				//if all data are transmitted or you reach the end of the buffer
+				if(bufPtr == mMsgSize || bufPtr == I2C_BUFFSIZE)
+				{
+					//inform that there are data in the buffer
+					mStatus = I2C_RXDATAINBUF;
+					
+					//reset the bufPtr ?
+					bufPtr = 0;
+					
+					//send NACK to the master
+					TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_COMPLETE | I2C_ACK_ACTION_SENDNACK;				
+				}
+				
+				//still data to received
+				else{
+					TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_CONTINUE;
+				}
+			}
+	
 	}
 	
 }

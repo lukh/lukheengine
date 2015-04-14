@@ -24,11 +24,19 @@
 #define I2C_BUFFSIZE 4
 
 //I2C Status bits
-#define I2C_LASTTRANSOK 0x01	//bit 0
-#define I2C_RXDATAINBUF 0x02	//bit 1
+#define I2C_LASTTRANSOK 0x01
+#define I2C_RXDATAINBUF 0x02
 
 
+//I2C States
+// I2C Slave Transmitter status codes
+#define I2C_ADDR_STOP_FLAG		0x40
+#define I2C_DATA_FLAG			0x80
+#define I2C_BUS_COLLISION		0x08
+#define I2C_BUS_ERROR			0x04
 
+#define I2C_MASTER_READ_FLAG	(1<<TWDIR)
+#define I2C_MASTER_NACK_FLAG	(1<<TWRA)
 
 
 //TWSCRA
@@ -69,33 +77,6 @@
 //TWSAM
 #define I2C_SEC_ADDR_EN	(1<<TWAE)
 #define I2C_SEC_ADDR_DIS	0
-
-
-
-
-
-//I2C States
-// I2C Slave Transmitter status codes
-#define I2C_STX_ADR_ACK				0x63  // Own SLA+R has been received; ACK has been returned
-
-#define I2C_STX_DATA_ACK			0xA2  // Data byte in TWDR has been transmitted; ACK has been received
-#define I2C_STX_DATA_NACK			0xB2  // Data byte in TWDR has been transmitted; NOT ACK has been received
-
-#define I2C_STX_STOP_RESTART		0x62  // A STOP condition or repeated START condition has been received while still addressed as Slave
-
-// I2C Slave Receiver status codes
-#define I2C_SRX_ADR_ACK				0x61  // Own SLA+W has been received ACK has been returned
-
-#define I2C_SRX_DATA_ACK			0xA0  // Previously addressed with own SLA+W; data has been received; ACK has been returned
-#define I2C_SRX_DATA_NACK			0xB0  // Previously addressed with own SLA+W; data has been received; NOT ACK has been returned
-
-#define I2C_SRX_STOP_RESTART		0x60  // A STOP condition or repeated START condition has been received while still addressed as Slave
-
-// I2C Miscellaneous status codes
-#define I2C_COLLISION				0x08  // Collision detected
-#define I2C_S_BUS_ERROR				0x04  // Bus error due to an illegal START or STOP condition
-
-
 
 
 
@@ -147,7 +128,6 @@ class I2c{
 		/**
 		 * \brief Start a transmission with interruptions without data
 		 * the peripheral is not busy until master ask for a transmission.
-		 * previous buffer is used.
 		 */
 		void startTransceiver();
 		

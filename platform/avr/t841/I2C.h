@@ -30,13 +30,16 @@
 
 //I2C States
 // I2C Slave Transmitter status codes
-#define I2C_ADDR_STOP_FLAG		0x40
-#define I2C_DATA_FLAG			0x80
-#define I2C_BUS_COLLISION		0x08
-#define I2C_BUS_ERROR			0x04
+#define I2C_DATA_FLAG			(1<<TWDIF)
+#define I2C_ADDR_STOP_FLAG		(1<<TWASIF)
+
+#define I2C_MASTER_NACK_FLAG	(1<<TWRA)
+#define I2C_BUS_COLLISION		(1<<TWC)
+#define I2C_BUS_ERROR			(1<<TWBE)
 
 #define I2C_MASTER_READ_FLAG	(1<<TWDIR)
-#define I2C_MASTER_NACK_FLAG	(1<<TWRA)
+#define I2C_ADDR_STO_IS_ADDR	(1<<TWAS)
+
 
 
 //TWSCRA
@@ -129,7 +132,7 @@ class I2c{
 		 * \brief Start a transmission with interruptions without data
 		 * the peripheral is not busy until master ask for a transmission.
 		 */
-		void startTransceiver();
+		void startTransceiver(uint8_t msgExpectedSize);
 		
 		/**
 		 * \brief get data from local buffer if the transmission was started with startTransceiver()
@@ -159,7 +162,7 @@ class I2c{
 		void callback();
 		
 	private:
-		uint8_t mBusy;
+		volatile uint8_t mBusy;
 		
 		/** 
 		 * Specify the state of transmitter (LAST TRANSMISsION OK / RXDATAINBUFF)

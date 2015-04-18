@@ -193,7 +193,6 @@ void I2c::callback(){
 				
 						//stop
 						else{
-							P_PORT(PORTB_B) = 0x4;
 							mBusy = I2C_READY;
 					
 							//Wait for any start condition
@@ -206,16 +205,15 @@ void I2c::callback(){
 			case I2C_DATA_FLAG:
 				//---  data transmitted   ---
 				if(TWSSRA & I2C_MASTER_READ_FLAG){
-					P_PORT(PORTB_B) = 0x02;
+					TWSD = mMsg[bufPtr++];
+									
 					//master ask for the end of the transmission
-					if(TWSSRA & I2C_MASTER_NACK_FLAG){
-						//transmission finished, but stop is not received yet so...
-					
+					if((TWSSRA & I2C_MASTER_NACK_FLAG) && (bufPtr != 1)){
+						P_PORT(PORTB_B) = 0x04;
+						
 						//do we have transmit everything ? (careful in the case of circular buffering, it doesn't work)
 						if(bufPtr == mMsgSize)
 							mStatus = I2C_LASTTRANSOK;
-						
-						//error case...
 						else
 							mError = TWSSRA;
 							
@@ -224,15 +222,13 @@ void I2c::callback(){
 					}
 				
 					else{
-						
-						TWSD = mMsg[bufPtr++];
-				
-						if(bufPtr == mMsgSize || bufPtr == I2C_BUFFSIZE)
-							bufPtr = 0; //come back to the begin of the pointer
-					
+						P_PORT(PORTB_B) = 0x02;
 						//clear interruptions and ask for a NO ACTION (everything is done when loading data to TWSD
 						TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_CONTINUE;
 					}
+					
+					if(bufPtr == mMsgSize || bufPtr == I2C_BUFFSIZE)
+						bufPtr = 0; //come back to the begin of the pointer
 				}
 				
 			

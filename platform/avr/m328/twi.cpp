@@ -262,6 +262,7 @@ ISR(TWI_vect)
 		case TWI_MRX_DATA_ACK:      // Data byte has been received and ACK tramsmitted
 			TWI_buf[TWI_bufPtr++] = TWDR;
 		case TWI_MRX_ADR_ACK:       // SLA+R has been tramsmitted and ACK received
+			//PORTD = 0x01;
 			if (TWI_bufPtr < (TWI_msgSize-1) )                  // Detect the last byte to NACK it.
 			{
 				TWCR = (1<<TWEN)|                                 // TWI Interface enabled
@@ -277,6 +278,7 @@ ISR(TWI_vect)
 			}
 			break;
 		case TWI_MRX_DATA_NACK:     // Data byte has been received and NACK tramsmitted
+			//PORTD = 0x02;
 			TWI_buf[TWI_bufPtr] = TWDR;
 			TWI_statusReg.lastTransOK = TRUE;                 // Set status bits to completed successfully.
 			TWCR = (1<<TWEN)|                                 // TWI Interface enabled

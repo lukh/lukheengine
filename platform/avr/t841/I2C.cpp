@@ -223,8 +223,8 @@ void I2c::callback(){
 				//---  data transmitted   ---
 				if(TWSSRA & I2C_MASTER_READ_FLAG){	
 						
-					//master ask for the end of the transmission
-					if((TWSSRA & I2C_MASTER_NACK_FLAG) && (bufPtr > 0)){
+					//master ask for the end of the transmission or the slave reach the end of the buffer
+					if(((TWSSRA & I2C_MASTER_NACK_FLAG) && (bufPtr > 0)) || (bufPtr == I2C_BUFFSIZE)){
 						P_PORT(PORTB_B) = 0x02;
 						
 						//do we have transmit everything ? (careful in the case of circular buffering, it doesn't work)
@@ -251,7 +251,7 @@ void I2c::callback(){
 					}
 					
 					//error case : too much data transmitted !
-					//if(bufPtr == I2C_BUFFSIZE)
+					//if
 				}
 				
 			
@@ -264,6 +264,8 @@ void I2c::callback(){
 					mStatus = I2C_RXDATAINBUF;
 				
 					//if all data are transmitted or you reach the end of the buffer
+					//you can received one more byte than msgSize, but then a NACK will be sent (error !)
+					//you can't overflow the buffer (second assertion)
 					if(bufPtr == mMsgSize + 1 || bufPtr == I2C_BUFFSIZE)
 					{					
 						//reset the bufPtr ?

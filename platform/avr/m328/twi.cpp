@@ -229,7 +229,8 @@ ISR(TWI_vect)
 		case TWI_START:             // START has been transmitted
 		case TWI_REP_START:         // Repeated START has been transmitted
 			TWI_bufPtr = 0;                                     // Set buffer pointer to the TWI Address location
-			//PORTD = 0x00;
+			PORTD = 0x01;
+			PORTD = 0x00;
 		case TWI_MTX_ADR_ACK:       // SLA+W has been tramsmitted and ACK received
 		case TWI_MTX_DATA_ACK:      // Data byte has been tramsmitted and ACK received
 			if (TWI_bufPtr < TWI_msgSize)
@@ -262,29 +263,33 @@ ISR(TWI_vect)
 		case TWI_MRX_DATA_ACK:      // Data byte has been received and ACK tramsmitted
 			TWI_buf[TWI_bufPtr++] = TWDR;
 		case TWI_MRX_ADR_ACK:       // SLA+R has been tramsmitted and ACK received
-			//PORTD = 0x01;
 			if (TWI_bufPtr < (TWI_msgSize-1) )                  // Detect the last byte to NACK it.
 			{
+				PORTD = 0x01;
 				TWCR = (1<<TWEN)|                                 // TWI Interface enabled
 				(1<<TWIE)|(1<<TWINT)|                      // Enable TWI Interupt and clear the flag to read next byte
 				(1<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|           // Send ACK after reception
 				(0<<TWWC);                                 //
+				PORTD = 0x00;
 			}else                    // Send NACK after next reception
 			{
+				PORTD = 0x01;
 				TWCR = (1<<TWEN)|                                 // TWI Interface enabled
 				(1<<TWIE)|(1<<TWINT)|                      // Enable TWI Interupt and clear the flag to read next byte
 				(0<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|           // Send NACK after reception
 				(0<<TWWC);                                 //
+				PORTD = 0x00;
 			}
 			break;
 		case TWI_MRX_DATA_NACK:     // Data byte has been received and NACK tramsmitted
-			//PORTD = 0x02;
+			PORTD = 0x01;
 			TWI_buf[TWI_bufPtr] = TWDR;
 			TWI_statusReg.lastTransOK = TRUE;                 // Set status bits to completed successfully.
 			TWCR = (1<<TWEN)|                                 // TWI Interface enabled
 			(0<<TWIE)|(1<<TWINT)|                      // Disable TWI Interrupt and clear the flag
 			(0<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|           // Initiate a STOP condition.
-			(0<<TWWC);                                 //
+			(0<<TWWC);  
+			PORTD = 0x00;                               //
 			break;
 		case TWI_ARB_LOST:          // Arbitration lost
 			TWCR = (1<<TWEN)|                                 // TWI Interface enabled

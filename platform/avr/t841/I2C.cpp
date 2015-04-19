@@ -140,7 +140,7 @@ uint8_t I2c::getDataFromTransceiver(uint8_t *msg, uint8_t msgSize){
 
 
 void I2c::callback(){
-	static uint8_t bufPtr;
+	static volatile uint8_t bufPtr;
 	
 	//Bus error case
 	if(TWSSRA & I2C_BUS_ERROR){
@@ -192,6 +192,8 @@ void I2c::callback(){
 							
 							/*if(TWSSRA & I2C_MASTER_READ_FLAG)
 								TWSD = mMsg[bufPtr++];*/
+							
+							P_PORT(PORTB_B) = 0x0;
 						}
 				
 						//stop
@@ -200,6 +202,18 @@ void I2c::callback(){
 					
 							//Wait for any start condition
 							TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_COMPLETE;
+							
+							//disable interruptions
+							TWSCRA =
+								I2C_INTERFACE_EN |                  // Enable TWI-interface and release TWI pins.
+								
+								I2C_DATA_INTERRUPT_DIS |			// disable TWI Interrupts.
+								I2C_ADDR_STOP_INTERRUPT_DIS |
+								I2C_STOP_INTERRUPT_DIS |
+								
+								I2C_SDA_HOLD_TIME_DIS |				//other configs
+								I2C_PROMISC_DIS |
+								I2C_SMARTMODE_DIS;
 						}
 					}
 					break;
@@ -208,11 +222,10 @@ void I2c::callback(){
 			case I2C_DATA_FLAG:
 				//---  data transmitted   ---
 				if(TWSSRA & I2C_MASTER_READ_FLAG){	
-					
 						
 					//master ask for the end of the transmission
 					if((TWSSRA & I2C_MASTER_NACK_FLAG) && (bufPtr > 0)){
-						P_PORT(PORTB_B) = 0x04;
+						P_PORT(PORTB_B) = 0x02;
 						
 						//do we have transmit everything ? (careful in the case of circular buffering, it doesn't work)
 						if(bufPtr == mMsgSize)
@@ -222,19 +235,23 @@ void I2c::callback(){
 							
 						//since, we still have to finish it	(and clear interruptions, BTW)
 						TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_COMPLETE;
+						
+						P_PORT(PORTB_B) = 0x00;
 					}
 				
 					else{
-						P_PORT(PORTB_B) = 0x02;
+						P_PORT(PORTB_B) = 0x01;
 						
 						TWSD = mMsg[bufPtr++];
 						
 						//clear interruptions and ask for a NO ACTION (everything is done when loading data to TWSD
 						TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_CONTINUE;
+						
+						P_PORT(PORTB_B) = 0x00;
 					}
 					
-					if(bufPtr == mMsgSize || bufPtr == I2C_BUFFSIZE)
-						bufPtr = 0; //come back to the begin of the pointer
+					//error case : too much data transmitted !
+					//if(bufPtr == I2C_BUFFSIZE)
 				}
 				
 			
@@ -242,18 +259,16 @@ void I2c::callback(){
 				else{
 					//get the new data
 					mMsg[bufPtr++] = TWSD;
+					
+					//inform that there are data in the buffer
+					mStatus = I2C_RXDATAINBUF;
 				
 					//if all data are transmitted or you reach the end of the buffer
-					if(bufPtr == mMsgSize || bufPtr == I2C_BUFFSIZE)
-					{
-				 		//P_PORT(PORTB_B) = 0x2;
-						//inform that there are data in the buffer
-						mStatus = I2C_RXDATAINBUF;
-					
+					if(bufPtr == mMsgSize + 1 || bufPtr == I2C_BUFFSIZE)
+					{					
 						//reset the bufPtr ?
 						bufPtr = 0;
-						
-					
+								
 						//send NACK to the master
 						TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_COMPLETE | I2C_ACK_ACTION_SENDNACK;				
 					}

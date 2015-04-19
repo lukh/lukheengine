@@ -250,16 +250,6 @@ ISR(TWI_vect)
 			}
 			break;
 		
-		case TWI_MTX_DATA_NACK:     // Data byte has been tramsmitted and NACK received
-			if (TWI_bufPtr == TWI_msgSize)
-				TWI_statusReg.lastTransOK = TRUE;                 // Set status bits to completed successfully.
-		
-			TWCR = (1<<TWEN)|                                 // TWI Interface enabled
-			(0<<TWIE)|(1<<TWINT)|                      // Disable TWI Interrupt and clear the flag
-			(0<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|           // Initiate a STOP condition.
-			(0<<TWWC);
-			break;
-		
 		case TWI_MRX_DATA_ACK:      // Data byte has been received and ACK tramsmitted
 			TWI_buf[TWI_bufPtr++] = TWDR;
 		case TWI_MRX_ADR_ACK:       // SLA+R has been tramsmitted and ACK received
@@ -299,6 +289,7 @@ ISR(TWI_vect)
 			break;
 		case TWI_MTX_ADR_NACK:      // SLA+W has been tramsmitted and NACK received
 		case TWI_MRX_ADR_NACK:      // SLA+R has been tramsmitted and NACK received
+		case TWI_MTX_DATA_NACK:     // Data byte has been tramsmitted and NACK received
 		                 //
 		case TWI_BUS_ERROR:         // Bus error due to an illegal START or STOP condition
 		default:

@@ -189,6 +189,9 @@ void I2c::callback(){
 					
 							//Execute ACK and then receive next byte or set TWDIF to send the data
 							TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_CONTINUE;
+							
+							/*if(TWSSRA & I2C_MASTER_READ_FLAG)
+								TWSD = mMsg[bufPtr++];*/
 						}
 				
 						//stop
@@ -204,11 +207,11 @@ void I2c::callback(){
 
 			case I2C_DATA_FLAG:
 				//---  data transmitted   ---
-				if(TWSSRA & I2C_MASTER_READ_FLAG){
-					TWSD = mMsg[bufPtr++];
-									
+				if(TWSSRA & I2C_MASTER_READ_FLAG){	
+					
+						
 					//master ask for the end of the transmission
-					if((TWSSRA & I2C_MASTER_NACK_FLAG) && (bufPtr != 1)){
+					if((TWSSRA & I2C_MASTER_NACK_FLAG) && (bufPtr > 0)){
 						P_PORT(PORTB_B) = 0x04;
 						
 						//do we have transmit everything ? (careful in the case of circular buffering, it doesn't work)
@@ -223,6 +226,9 @@ void I2c::callback(){
 				
 					else{
 						P_PORT(PORTB_B) = 0x02;
+						
+						TWSD = mMsg[bufPtr++];
+						
 						//clear interruptions and ask for a NO ACTION (everything is done when loading data to TWSD
 						TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_CONTINUE;
 					}

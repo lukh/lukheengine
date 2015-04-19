@@ -182,18 +182,12 @@ void I2c::callback(){
 						if(TWSSRA & I2C_ADDR_STO_IS_ADDR){						
 							//update status
 							mBusy = I2C_BUSY;
-							P_PORT(PORTB_B) = 0x1;
 					
 							//initialize the buffer pointer
 							bufPtr = 0;
 					
 							//Execute ACK and then receive next byte or set TWDIF to send the data
 							TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_CONTINUE;
-							
-							/*if(TWSSRA & I2C_MASTER_READ_FLAG)
-								TWSD = mMsg[bufPtr++];*/
-							
-							P_PORT(PORTB_B) = 0x0;
 						}
 				
 						//stop
@@ -225,8 +219,7 @@ void I2c::callback(){
 						
 					//master ask for the end of the transmission or the slave reach the end of the buffer
 					if(((TWSSRA & I2C_MASTER_NACK_FLAG) && (bufPtr > 0)) || (bufPtr == I2C_BUFFSIZE)){
-						P_PORT(PORTB_B) = 0x02;
-						
+					
 						//do we have transmit everything ? (careful in the case of circular buffering, it doesn't work)
 						if(bufPtr == mMsgSize)
 							mStatus = I2C_LASTTRANSOK;
@@ -235,23 +228,15 @@ void I2c::callback(){
 							
 						//since, we still have to finish it	(and clear interruptions, BTW)
 						TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_COMPLETE;
-						
-						P_PORT(PORTB_B) = 0x00;
 					}
 				
-					else{
-						P_PORT(PORTB_B) = 0x01;
-						
+					else{			
 						TWSD = mMsg[bufPtr++];
 						
 						//clear interruptions and ask for a NO ACTION (everything is done when loading data to TWSD
 						TWSCRB = I2C_HIGH_NOISE_DIS | I2C_CMD_CONTINUE;
-						
-						P_PORT(PORTB_B) = 0x00;
 					}
-					
-					//error case : too much data transmitted !
-					//if
+
 				}
 				
 			

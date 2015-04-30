@@ -29,15 +29,21 @@ Adc::~Adc(){
 void Adc::lowLevelInit(){
 	//turn on the ADC module
 	PRR &= ~(1 << PRADC);
+	
+	//debug purpose
+	
+	
 }
 
 void Adc::configure(uint8_t ref, uint8_t prescaler, uint8_t autoTrigEn, uint8_t autoTrigSource){
 	//configure the peripheral
-	ADCSRA = ADC_ENABLE | autoTrigEn | prescaler;
+	ADCSRA = autoTrigEn | prescaler;
 	ADCSRB = ADC_RIGHT_ADJUST_RESULT | autoTrigSource;
 	
-	ADMUXB = ref;
+	ADMUXB = ref | ADC_MUXB_GAIN_1;
 	ADMUXA = ADC_MUXA_CH0;
+	
+	ADCSRA |= ADC_ENABLE;
 }
 
 void Adc::setMuxChannel(uint8_t channel, uint8_t did){
@@ -68,17 +74,17 @@ void Adc::setMuxChannel(uint8_t channel, uint8_t did){
 uint16_t Adc::convert(){
 	//disable interruption and start a conversion and the peripheral
 	ADCSRA &= ~(ADC_INTERRUPT_EN);
-	ADCSRA |= ADC_ENABLE | ADC_START_CONV;
+	ADCSRA |= ADC_START_CONV;
 	
 	//wait for the conversion
 	while(ADCSRA & ADC_START_CONV);
+
 	
 	//clearing...
-	ADCSRA |= ADC_INTERRUPT_FLAG;
+	//ADCSRA |= ADC_INTERRUPT_FLAG;
 	
 	//get value...
-	mValue = ADCL;
-	mValue = ADCH << 8;
+	mValue = ADCW;
 	
 	return mValue;
 }

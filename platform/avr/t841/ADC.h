@@ -12,6 +12,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#include "GPIO.h"
+
 
 /*
  * Configuration defines
@@ -49,6 +51,7 @@
 #define ADC_ENABLE				(1<<ADEN)
 #define ADC_START_CONV			(1<<ADSC)
 #define ADC_AUTO_TRIG_EN		(1<<ADATE)
+#define ADC_AUTO_TRIG_DIS		0
 #define ADC_INTERRUPT_FLAG		(1<<ADIF)
 #define ADC_INTERRUPT_EN		(1<<ADIE)
 //#define ADC_INTERRUPT_DIS		(0<<ADIE)

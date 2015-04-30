@@ -15,11 +15,11 @@
 /*
  * Configuration defines
  */
-#define MUX_EN 0
-#define MUX_DIS 1
+#define MUX_EN 1
+#define MUX_DIS 0
 
-#define MUX_ADDR_HIGH 1
-#define MUX_ADDR_LOW 0
+#define MUX_ADDR_HIGH 0
+#define MUX_ADDR_LOW 1
 
 /*
  * Mux4 : 
